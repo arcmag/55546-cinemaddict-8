@@ -10,44 +10,22 @@ const cardDataTemplate = {
   commentsCount: 13
 };
 
-const renderCard = (card, noDescription) => {
-  let stringDescription = ``;
-
-  if (card.title === undefined) {
-    card.title = ``;
-  }
-
-  if (card.rating === undefined) {
-    card.rating = ``;
-  }
-
-  if (card.year === undefined) {
-    card.year = ``;
-  }
-
-  if (card.duration === undefined) {
-    card.duration = ``;
-  }
-
-  if (card.genre === undefined) {
-    card.genre = ``;
-  }
-
-  if (card.img === undefined) {
-    card.img = ``;
-  }
-
-  if (card.imgAlt === undefined) {
-    card.imgAlt = ``;
-  }
-
-  if (card.commentsCount === undefined) {
-    card.commentsCount = 0;
-  }
-
-  if (!noDescription) {
-    stringDescription = `<p class="film-card__description">${card.description}</p>`;
-  }
+const renderCard = (data, noDescription) => {
+  const card = {
+    ...{
+        title: '',
+        rating: '',
+        year: '',
+        duration: '',
+        genre: '',
+        img: '',
+        imgAlt: '',
+        commentsCount: 0
+      },
+    ...data
+  };
+  
+  let stringDescription = !noDescription ? `` : `<p class="film-card__description">${card.description}</p>`;
 
   return `
     <article class="film-card">

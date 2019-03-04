@@ -1,7 +1,8 @@
-import {cardsBlock} from './util.js';
 import {renderCard, cardDataTemplate} from './card.js';
 
 const MAX_COUNT_FILMS = 30;
+
+const cardsBlock = document.querySelector(`.films-list__container`);
 
 const getRandomCountFilms = () => {
   return Math.round(Math.random() * MAX_COUNT_FILMS);
@@ -16,21 +17,9 @@ const filters = [
 ];
 
 const renderFilter = (name = ``, link = `#`, count, isActive, isStats) => {
-  let countString = ``;
-  let activeString = ``;
-  let statsString = ``;
-
-  if (count !== undefined) {
-    countString = `<span class="main-navigation__item-count">${count}</span>`;
-  }
-
-  if (isActive !== undefined) {
-    activeString = `main-navigation__item--active`;
-  }
-
-  if (isStats !== undefined) {
-    statsString = `main-navigation__item--additional`;
-  }
+  const countString = count === undefined ? `` : `<span class="main-navigation__item-count">${count}</span>`;
+  const activeString = isActive === undefined ? `` : `main-navigation__item--active`;
+  const statsString = isStats === undefined ? `` : `main-navigation__item--additional`;
 
   return `
     <a href="${link}" class="main-navigation__item ${activeString} ${statsString}">

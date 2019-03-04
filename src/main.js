@@ -1,6 +1,7 @@
-import {cardsBlock} from './util.js';
 import {renderFilter, filters, bindFiltersAction} from './filter.js';
 import {renderCard, cardDataTemplate} from './card.js';
+
+const cardsBlock = document.querySelector(`.films-list__container`);
 
 const filterBlock = document.querySelector(`.main-navigation`);
 filterBlock.innerHTML = filters.map((it) => {
