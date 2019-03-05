@@ -1,7 +1,7 @@
 # Личный проект «Киноман» [![Build status][travis-image]][travis-url]
 
 * Студент: [Николай Блинов](https://up.htmlacademy.ru/ecmascript/8/user/55546).
-* Наставник: [Александр Быков](https://htmlacademy.ru/profile/id7107).
+* Наставник: [Сергей Вохмянин](https://htmlacademy.ru/profile/id530823).
 
 ---
 
