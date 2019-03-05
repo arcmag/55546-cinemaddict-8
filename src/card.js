@@ -1,31 +1,20 @@
-const cardDataTemplate = {
-  title: `Incredibles 2`,
-  rating: 9.8,
-  year: 2018,
-  duration: `1h&nbsp;13m`,
-  genre: `Comedy`,
-  img: `./images/posters/moonrise.jpg`,
-  imgAlt: `poster film`,
-  description: `A priests Romania and confront a malevolent force in the form of a demonic nun.`,
-  commentsCount: 13
-};
-
-const renderCard = (data, noDescription) => {
-  const card = {
-    ...{
-        title: '',
-        rating: '',
-        year: '',
-        duration: '',
-        genre: '',
-        img: '',
-        imgAlt: '',
-        commentsCount: 0
-      },
+const getCardDataTemplate = (data) => {
+  return {
+    title: `Incredibles 2`,
+    rating: 9.8,
+    year: 2018,
+    duration: `1h&nbsp;13m`,
+    genre: `Comedy`,
+    img: `./images/posters/moonrise.jpg`,
+    imgAlt: `poster film`,
+    description: `A priests Romania and confront a malevolent force in the form of a demonic nun.`,
+    commentsCount: 13,
     ...data
   };
-  
-  let stringDescription = !noDescription ? `` : `<p class="film-card__description">${card.description}</p>`;
+};
+
+const renderCard = (card, noDescription) => {
+  const stringDescription = !noDescription ? `` : `<p class="film-card__description">${card.description}</p>`;
 
   return `
     <article class="film-card">
@@ -49,4 +38,4 @@ const renderCard = (data, noDescription) => {
   `;
 };
 
-export {renderCard, cardDataTemplate};
+export {renderCard, getCardDataTemplate};

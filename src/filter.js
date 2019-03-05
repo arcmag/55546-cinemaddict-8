@@ -1,4 +1,4 @@
-import {renderCard, cardDataTemplate} from './card.js';
+import {renderCard, getCardDataTemplate} from './card';
 
 const MAX_COUNT_FILMS = 30;
 
@@ -17,9 +17,9 @@ const filters = [
 ];
 
 const renderFilter = (name = ``, link = `#`, count, isActive, isStats) => {
-  const countString = count === undefined ? `` : `<span class="main-navigation__item-count">${count}</span>`;
-  const activeString = isActive === undefined ? `` : `main-navigation__item--active`;
-  const statsString = isStats === undefined ? `` : `main-navigation__item--additional`;
+  const countString = !count ? `` : `<span class="main-navigation__item-count">${count}</span>`;
+  const activeString = !isActive ? `` : `main-navigation__item--active`;
+  const statsString = !isStats ? `` : `main-navigation__item--additional`;
 
   return `
     <a href="${link}" class="main-navigation__item ${activeString} ${statsString}">
@@ -29,7 +29,7 @@ const renderFilter = (name = ``, link = `#`, count, isActive, isStats) => {
 };
 
 const clickFilterFilm = () => {
-  cardsBlock.innerHTML = Array(getRandomCountFilms()).fill(renderCard(cardDataTemplate));
+  cardsBlock.innerHTML = Array(getRandomCountFilms()).fill(renderCard(getCardDataTemplate())).join(``);
 };
 
 const bindFiltersAction = (filtersSelector) => {

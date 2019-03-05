@@ -1,5 +1,5 @@
-import {renderFilter, filters, bindFiltersAction} from './filter.js';
-import {renderCard, cardDataTemplate} from './card.js';
+import {renderFilter, filters, bindFiltersAction} from './filter';
+import {renderCard, getCardDataTemplate} from './card';
 
 const cardsBlock = document.querySelector(`.films-list__container`);
 
@@ -10,10 +10,10 @@ filterBlock.innerHTML = filters.map((it) => {
 
 bindFiltersAction(`.main-navigation .main-navigation__item`);
 
-cardsBlock.innerHTML = Array(7).fill(renderCard(cardDataTemplate));
+cardsBlock.innerHTML = Array(7).fill(renderCard(getCardDataTemplate())).join(``);
 
 const topRatedCardsBlock = document.querySelector(`.films-list--extra .films-list__container`);
-topRatedCardsBlock.innerHTML = Array(2).fill(renderCard(cardDataTemplate, true));
+topRatedCardsBlock.innerHTML = Array(2).fill(renderCard(getCardDataTemplate(), true)).join(``);
 
 const mostCommentedCardsBlock = document.querySelector(`.films-list--extra:nth-child(3) .films-list__container`);
-mostCommentedCardsBlock.innerHTML = Array(2).fill(renderCard(cardDataTemplate, true));
+mostCommentedCardsBlock.innerHTML = Array(2).fill(renderCard(getCardDataTemplate(), true)).join(``);
