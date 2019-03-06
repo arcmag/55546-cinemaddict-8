@@ -1,7 +1,5 @@
 import {renderFilter, filters, bindFiltersAction} from './filter';
-import {renderCard, getCardDataTemplate} from './card';
-
-const cardsBlock = document.querySelector(`.films-list__container`);
+import {createCardList, renderCardList} from './card';
 
 const filterBlock = document.querySelector(`.main-navigation`);
 filterBlock.innerHTML = filters.map((it) => {
@@ -10,10 +8,11 @@ filterBlock.innerHTML = filters.map((it) => {
 
 bindFiltersAction(`.main-navigation .main-navigation__item`);
 
-cardsBlock.innerHTML = Array(7).fill(renderCard(getCardDataTemplate())).join(``);
+const cardsBlock = document.querySelector(`.films-list__container`);
+renderCardList(createCardList(7), cardsBlock);
 
-const topRatedCardsBlock = document.querySelector(`.films-list--extra .films-list__container`);
-topRatedCardsBlock.innerHTML = Array(2).fill(renderCard(getCardDataTemplate(), true)).join(``);
+const topCardsBlock = document.querySelector(`.films-list--extra .films-list__container`);
+renderCardList(createCardList(2), topCardsBlock, false);
 
-const mostCommentedCardsBlock = document.querySelector(`.films-list--extra:nth-child(3) .films-list__container`);
-mostCommentedCardsBlock.innerHTML = Array(2).fill(renderCard(getCardDataTemplate(), true)).join(``);
+const mostCardsBlock = document.querySelector(`.films-list--extra:nth-child(3) .films-list__container`);
+renderCardList(createCardList(2), mostCardsBlock, false);
