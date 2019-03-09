@@ -1,11 +1,9 @@
-import {createCardList, renderCardList} from './card';
+import {getRandomInt, createCardList, renderCardList, createDataCardsList} from './util';
 
 const MAX_COUNT_FILMS = 20;
 const MIN_COUNT_FILMS = 0;
 
 const cardsBlock = document.querySelector(`.films-list__container`);
-
-const getRandomInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
 
 const getRandomCountFilms = () => getRandomInt(MIN_COUNT_FILMS, MAX_COUNT_FILMS);
 
@@ -30,7 +28,16 @@ const renderFilter = (name = ``, link = `#`, count, isActive, isStats) => {
 };
 
 const clickFilterFilm = () => {
-  renderCardList(createCardList(getRandomCountFilms()), cardsBlock);
+  cardsBlock.innerHTML = ``;
+
+  renderCardList(
+      cardsBlock,
+      createCardList(
+          createDataCardsList(
+              getRandomCountFilms()
+          )
+      )
+  );
 };
 
 const bindFiltersAction = (filtersSelector) => {

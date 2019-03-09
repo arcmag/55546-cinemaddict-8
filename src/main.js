@@ -1,5 +1,5 @@
+import {createDataCardsList, createCardList, renderCardList} from './util';
 import {renderFilter, filters, bindFiltersAction} from './filter';
-import {createCardList, renderCardList} from './card';
 
 const filterBlock = document.querySelector(`.main-navigation`);
 filterBlock.innerHTML = filters.map((it) => {
@@ -8,11 +8,14 @@ filterBlock.innerHTML = filters.map((it) => {
 
 bindFiltersAction(`.main-navigation .main-navigation__item`);
 
-const cardsBlock = document.querySelector(`.films-list__container`);
-renderCardList(createCardList(7), cardsBlock);
+const mainCardsBlock = document.querySelector(`.films-list__container`);
+mainCardsBlock.innerHTML = ``;
+renderCardList(mainCardsBlock, createCardList(createDataCardsList(7)));
 
 const topCardsBlock = document.querySelector(`.films-list--extra .films-list__container`);
-renderCardList(createCardList(2), topCardsBlock, false);
+topCardsBlock.innerHTML = ``;
+renderCardList(topCardsBlock, createCardList(createDataCardsList(2)));
 
 const mostCardsBlock = document.querySelector(`.films-list--extra:nth-child(3) .films-list__container`);
-renderCardList(createCardList(2), mostCardsBlock, false);
+mostCardsBlock.innerHTML = ``;
+renderCardList(mostCardsBlock, createCardList(createDataCardsList(2)));
