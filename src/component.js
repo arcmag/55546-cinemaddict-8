@@ -17,6 +17,10 @@ class Component {
     throw new Error(`You have to define template.`);
   }
 
+  remove() {
+    this._element.parentNode.removeChild(this._element);
+  }
+
   cache() {}
   uncache() {}
 

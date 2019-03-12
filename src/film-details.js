@@ -184,12 +184,12 @@ class CardFilmDetails extends Component {
       </section>`;
   }
 
-  uncache() {
-    this._btnClose = null;
-  }
-
   cache() {
     this._btnClose = this._element.querySelector(`.film-details__close-btn`);
+  }
+
+  uncache() {
+    this._btnClose = null;
   }
 
   bind() {

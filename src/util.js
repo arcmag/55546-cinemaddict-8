@@ -33,16 +33,14 @@ const renderCard = (container, dataCard) => {
   };
 
   dataCard.cardDetails.onClose = () => {
-    dataCard.cardDetails.element.parentNode.removeChild(dataCard.cardDetails.element);
+    dataCard.cardDetails.remove();
     dataCard.cardDetails.unrender();
   };
 
   container.appendChild(dataCard.card.render());
 };
 
-const createCardList = (dataCardsList) => {
-  return dataCardsList.map((it) => createCard(it));
-};
+const createCardList = (dataCardsList) => dataCardsList.map((it) => createCard(it));
 
 const renderCardList = (container, cardsList) => {
   cardsList.forEach((it) => {
