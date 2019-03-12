@@ -1,7 +1,8 @@
-import {createElement} from './util';
+import {Component} from './component';
 
-class CardFilmDetails {
+class CardFilmDetails extends Component {
   constructor(data) {
+    super();
     this._title = data.title;
     this._rating = data.rating;
     this._year = data.year;
@@ -23,10 +24,6 @@ class CardFilmDetails {
     if (typeof this._onClose === `function`) {
       this._onClose();
     }
-  }
-
-  get element() {
-    return this._element;
   }
 
   get template() {
@@ -187,22 +184,12 @@ class CardFilmDetails {
       </section>`;
   }
 
+  uncache() {
+    this._btnClose = null;
+  }
+
   cache() {
     this._btnClose = this._element.querySelector(`.film-details__close-btn`);
-  }
-
-  render() {
-    this._element = createElement(this.template);
-
-    this.cache();
-    this.bind();
-
-    return this._element;
-  }
-
-  unrender() {
-    this.unbind();
-    this._element = null;
   }
 
   bind() {

@@ -1,7 +1,8 @@
-import {createElement} from './util';
+import {Component} from './component';
 
-class CardFilm {
+class CardFilm extends Component {
   constructor(data) {
+    super();
     this._title = data.title;
     this._rating = data.rating;
     this._year = data.year;
@@ -23,10 +24,6 @@ class CardFilm {
     if (typeof this._onClick === `function`) {
       this._onClick();
     }
-  }
-
-  get element() {
-    return this._element;
   }
 
   get template() {
@@ -56,18 +53,8 @@ class CardFilm {
     this._btnComments = this._element.querySelector(`.film-card__comments`);
   }
 
-  render() {
-    this._element = createElement(this.template);
-
-    this.cache();
-    this.bind();
-
-    return this._element;
-  }
-
-  unrender() {
-    this.unbind();
-    this._element = null;
+  uncache() {
+    this._btnComments = null;
   }
 
   bind() {
