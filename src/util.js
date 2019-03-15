@@ -37,6 +37,15 @@ const renderCard = (container, dataCard) => {
     dataCard.cardDetails.unrender();
   };
 
+  dataCard.cardDetails._onAddCommentButtonClick = () => {
+    console.log(`_onVoteForFilmButtonClick`);
+  };
+
+  dataCard.cardDetails._onVoteForFilmButtonClick = () => {
+    console.log(`_onVoteForFilmButtonClick`);
+  };
+
+
   container.appendChild(dataCard.card.render());
 };
 

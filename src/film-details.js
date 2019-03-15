@@ -14,10 +14,22 @@ class CardFilmDetails extends Component {
     this._commentsCount = data.commentsCount;
 
     this._onCloseButtonClick = this._onCloseButtonClick.bind(this);
+
+
+    this._onAddCommentButtonClick = this._onAddCommentButtonClick.bind(this);
+    this._onVoteForFilmButtonClick = this._onVoteForFilmButtonClick.bind(this);
   }
 
   set onClose(fn) {
     this._onClose = fn;
+  }
+
+  set onAddComment(fn) {
+    this._onAddComment = fn;
+  }
+
+  set onVoteForFilm(fn) {
+    this._onVoteForFilm = fn;
   }
 
   _onCloseButtonClick() {
@@ -25,6 +37,34 @@ class CardFilmDetails extends Component {
       this._onClose();
     }
   }
+
+
+
+
+
+
+
+  _onAddCommentButtonClick() {
+    if (typeof this._onAddComment === `function`) {
+      this._onAddComment();
+    }
+  }
+
+  _onVoteForFilmButtonClick() {
+    if (typeof this._onVoteForFilm === `function`) {
+      this._onVoteForFilm();
+    }
+  }
+
+
+
+
+
+
+
+
+
+
 
   get template() {
     const ratingCount = 10;
@@ -186,18 +226,22 @@ class CardFilmDetails extends Component {
 
   cache() {
     this._btnClose = this._element.querySelector(`.film-details__close-btn`);
+    this._btnUndo = this._element.querySelector(`.film-details__watched-reset`);
   }
 
   uncache() {
     this._btnClose = null;
+    this._btnUndo = null;
   }
 
   bind() {
     this._btnClose.addEventListener(`click`, this._onCloseButtonClick);
+    this._btnUndo.addEventListener(`click`, this._onAddCommentButtonClick);
   }
 
   unbind() {
     this._btnClose.removeEventListener(`click`, this._onCloseButtonClick);
+    this._btnUndo.removeEventListener(`click`, this._onAddCommentButtonClick);
   }
 }
 
