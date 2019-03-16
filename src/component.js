@@ -1,6 +1,6 @@
 import {createElement} from './util';
 
-class Component {
+export default class Component {
   constructor() {
     if (new.target === Component) {
       throw new Error(`Can't instantiate BaseComponent, only concrete one.`);
@@ -15,10 +15,6 @@ class Component {
 
   get template() {
     throw new Error(`You have to define template.`);
-  }
-
-  remove() {
-    this._element.parentNode.removeChild(this._element);
   }
 
   cache() {}
@@ -40,6 +36,6 @@ class Component {
   bind() {}
 
   unbind() {}
-}
 
-export {Component};
+  update() {}
+}

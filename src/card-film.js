@@ -1,17 +1,23 @@
-import {Component} from './component';
+import Component from './component';
+import moment from 'moment';
 
-class CardFilm extends Component {
+export default class CardFilm extends Component {
   constructor(data) {
     super();
     this._title = data.title;
     this._rating = data.rating;
-    this._year = data.year;
-    this._duration = data.duration;
+    this._score = data.score;
+    this._date = data.date;
+    this._year = moment(this._date).format(`YYYY`);
+    this._duration = moment().set({
+      'hour': data.duration.hours,
+      'minute': data.duration.minutes
+    }).format(`HH:mm`);
     this._genre = data.genre;
     this._img = data.img;
     this._imgAlt = data.imgAlt;
     this._description = data.description;
-    this._commentsCount = data.commentsCount;
+    this._comments = data.comments;
 
     this._onCommentsButtonClick = this._onCommentsButtonClick.bind(this);
   }
@@ -38,7 +44,7 @@ class CardFilm extends Component {
         </p>
         <img src="${this._img}" alt="${this._imgAlt}" class="film-card__poster">
         <p class="film-card__description">${this._description}</p>
-        <button class="film-card__comments">${this._commentsCount} comments</button>
+        <button class="film-card__comments">${this._comments.length} comments</button>
 
         <form class="film-card__controls">
           <button class="film-card__controls-item button film-card__controls-item--add-to-watchlist">WL</button>
@@ -64,6 +70,20 @@ class CardFilm extends Component {
   unbind() {
     this._btnComments.removeEventListener(`click`, this._onCommentsButtonClick);
   }
-}
 
-export {CardFilm};
+  update(data) {
+    this._comment = data.comment;
+    this._commentEmoji = data.commentEmoji;
+    this._isFavorite = data.isFavorite;
+    this._isWatched = data.isWatched;
+    this._isWatchlist = data.isWatchlist;
+
+    this._score = data.score;
+  }
+
+  _partialUpdate() {
+    const parentElement = this._element.parentNode;
+    const oldElement = this._element;
+    parentElement.replaceChild(this.render(), oldElement);
+  }
+}

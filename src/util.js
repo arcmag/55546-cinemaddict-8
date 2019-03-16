@@ -1,6 +1,7 @@
 import {createRandomCard} from './data-card';
-import {CardFilm} from './card-film';
-import {CardFilmDetails} from './film-details';
+import CardFilm from './card-film';
+import CardFilmDetails from './film-details';
+
 const createElement = (template) => {
   const newElement = document.createElement(`div`);
   newElement.innerHTML = template.trim();
@@ -21,31 +22,31 @@ const createDataCardsList = (numberCards) => {
 };
 
 const createCard = (data) => {
+  const card = new CardFilm(data);
+  const cardDetails = new CardFilmDetails(data);
+
+  card.onClick = () => {
+    document.body.appendChild(cardDetails.render());
+  };
+
+  cardDetails.onClose = (newData) => {
+    card.update(newData);
+    card.unbind();
+    card.uncache();
+    card._partialUpdate();
+
+    cardDetails.update(newData);
+    cardDetails.element.remove();
+    cardDetails.unrender();
+  };
+
   return {
-    card: new CardFilm(data),
-    cardDetails: new CardFilmDetails(data)
+    card,
+    cardDetails
   };
 };
 
 const renderCard = (container, dataCard) => {
-  dataCard.card.onClick = () => {
-    document.body.appendChild(dataCard.cardDetails.render());
-  };
-
-  dataCard.cardDetails.onClose = () => {
-    dataCard.cardDetails.remove();
-    dataCard.cardDetails.unrender();
-  };
-
-  dataCard.cardDetails._onAddCommentButtonClick = () => {
-    console.log(`_onVoteForFilmButtonClick`);
-  };
-
-  dataCard.cardDetails._onVoteForFilmButtonClick = () => {
-    console.log(`_onVoteForFilmButtonClick`);
-  };
-
-
   container.appendChild(dataCard.card.render());
 };
 

@@ -43,31 +43,44 @@ const GENRES_LIST = [
   `Mystery`
 ];
 
+const AUTOR_NAMES_LIST = [
+  `Vladimir`,
+  `Nikolay`,
+  `Alexey`,
+  `Alexandr`,
+  `Anton`,
+  `Sergey`,
+  `Ivan`,
+  `Oleg`,
+];
+
 const POSTER_PATH = `./images/posters/`;
 
 const MAX_RAITING = 10;
 const MIN_RAITING = 0;
 
-const MAX_RANDOM_YEAR = 2018;
-const MIN_RANDOM_YEAR = 2000;
-
 const MAX_COUNT_DESCRIPTION = 3;
 const MIN_COUNT_DESCRIPTION = 1;
 
-const MAX_COMMENTS_COUNT = 100;
+const MAX_COMMENTS_COUNT = 30;
 const MIN_COMMENTS_COUNT = 0;
 
 const MAX_COUNT_GENRES = 4;
 const MIN_COUNT_GENRES = 1;
 
 const DEFAULT_IMG_ALT = `poster film`;
-const DEFAULT_FILM_DURATION = `1h&nbsp;13m`;
+
+const MIN_DATE_YEAR = 2000;
+const MIN_DATE_MONTH = 1;
+const MIN_DATE_DAY = 1;
+
+const HOUR_TIME = 60;
+const MAX_HOUR_FILM_DURATION = 3;
 
 const getRandomTitle = () => TITLES_LIST[getRandomInt(0, TITLES_LIST.length - 1)];
 const getRandomRaiting = () => getRandomFloat(MIN_RAITING, MAX_RAITING).toFixed(1);
-const getRandomYear = () => getRandomInt(MIN_RANDOM_YEAR, MAX_RANDOM_YEAR);
 const getRandomPoster = () => POSTERS_LIST[getRandomInt(0, POSTERS_LIST.length - 1)];
-const getRandomCommentsCount = () => getRandomInt(MIN_COMMENTS_COUNT, MAX_COMMENTS_COUNT);
+const getRandomAutorName = () => AUTOR_NAMES_LIST[getRandomInt(0, AUTOR_NAMES_LIST.length - 1)];
 
 const getRandomDescription = () => {
   let descriptionString = ``;
@@ -93,17 +106,46 @@ const getRandomGenres = () => {
   return genres;
 };
 
-const createRandomCard = (data) => {
+const getRandomDate = (min, max) => +(new Date(getRandomInt(min, max)));
+
+const getRandomDuration = () => {
+  const time = getRandomInt(HOUR_TIME, HOUR_TIME * MAX_HOUR_FILM_DURATION);
+
   return {
+    hours: parseInt(time / HOUR_TIME, 10),
+    minutes: time % HOUR_TIME
+  };
+};
+
+const getRandomCommentsList = (filmPublicDate) => {
+  const commentsList = [];
+  const countComments = getRandomInt(MIN_COMMENTS_COUNT, MAX_COMMENTS_COUNT);
+
+  for (let i = 0; i < countComments; i++) {
+    commentsList.push({
+      date: getRandomDate(filmPublicDate, Date.now()),
+      author: getRandomAutorName(),
+      text: getRandomDescription()
+    });
+  }
+
+  return commentsList;
+};
+
+const createRandomCard = (data) => {
+  const date = getRandomDate(+(new Date(MIN_DATE_YEAR, MIN_DATE_MONTH, MIN_DATE_DAY)), Date.now());
+
+  return {
+    date,
     title: getRandomTitle(),
     rating: getRandomRaiting(),
-    year: getRandomYear(),
-    duration: DEFAULT_FILM_DURATION,
+    score: getRandomRaiting(),
+    duration: getRandomDuration(),
     genre: getRandomGenres(),
     img: POSTER_PATH + getRandomPoster(),
     imgAlt: DEFAULT_IMG_ALT,
     description: getRandomDescription(),
-    commentsCount: getRandomCommentsCount(),
+    comments: getRandomCommentsList(date),
     ...data
   };
 };
