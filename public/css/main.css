@@ -306,6 +306,10 @@ a:hover {
   background-image: url('../images/icon-favorite.png');
 }
 
+.film-card__controls-item--active {
+  border: solid 1px orange;
+}
+
 
 .film-card:hover .film-card__poster {
   bottom: calc(100% - 340px);

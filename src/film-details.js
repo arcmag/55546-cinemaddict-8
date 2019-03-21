@@ -17,6 +17,9 @@ export default class CardFilmDetails extends Component {
     this._description = data.description;
     this._comments = data.comments;
 
+    this._isWatched = false;
+    this._isFavotite = false;
+
     this._onCloseButtonClick = this._onCloseButtonClick.bind(this);
   }
 
@@ -34,8 +37,8 @@ export default class CardFilmDetails extends Component {
 
     for (const pair of formData.entries()) {
       const [property, value] = pair;
-      if (filmDetailsMapper[property]) {
 
+      if (filmDetailsMapper[property]) {
         filmDetailsMapper[property](value);
       }
     }

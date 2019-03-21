@@ -1,49 +1,59 @@
-import {getRandomInt, createCardList, renderCardList, createDataCardsList} from './util';
+import Component from './component';
 
-const MAX_COUNT_FILMS = 20;
-const MIN_COUNT_FILMS = 0;
+export default class Filter extends Component {
+  constructor(data) {
+    super();
+    this._title = data.title;
+    this._link = data.link || `#`;
 
-const cardsBlock = document.querySelector(`.films-list__container`);
+    this._count = typeof data.count === `number` ? data.count : -1;
 
-const getRandomCountFilms = () => getRandomInt(MIN_COUNT_FILMS, MAX_COUNT_FILMS);
+    this._isActive = data.isActive;
+    this._isStats = data.isStats;
 
-const filters = [
-  {name: `All movies`, link: `#all`, isActive: true},
-  {name: `Watchlist`, link: `#watchlist`, count: getRandomCountFilms()},
-  {name: `History`, link: `#history`, count: getRandomCountFilms()},
-  {name: `Favorites`, link: `#favorites`, count: getRandomCountFilms()},
-  {name: `Stats`, link: `#stats`, isStats: true},
-];
+    this._onFilterClick = this._onFilterClick.bind(this);
 
-const renderFilter = (name = ``, link = `#`, count, isActive, isStats) => {
-  const countString = !count ? `` : `<span class="main-navigation__item-count">${count}</span>`;
-  const activeString = !isActive ? `` : `main-navigation__item--active`;
-  const statsString = !isStats ? `` : `main-navigation__item--additional`;
+    this._onFilter = null;
+  }
 
-  return `
-    <a href="${link}" class="main-navigation__item ${activeString} ${statsString}">
-      ${name} ${countString}
-    </a>
-  `;
-};
+  set onFilter(fn) {
+    this._onFilter = fn;
+  }
 
-const clickFilterFilm = () => {
-  cardsBlock.innerHTML = ``;
+  _onFilterClick(evt) {
+    evt.preventDefault();
 
-  renderCardList(
-      cardsBlock,
-      createCardList(
-          createDataCardsList(
-              getRandomCountFilms()
-          )
-      )
-  );
-};
+    if (typeof this._onFilter === `function`) {
+      this._onFilter();
+    }
+  }
 
-const bindFiltersAction = (filtersSelector) => {
-  [...document.querySelectorAll(filtersSelector)].forEach((it) => {
-    it.addEventListener(`click`, clickFilterFilm);
-  });
-};
+  get template() {
+    return `
+      <a href="${this._link}"
+          class="main-navigation__item
+            ${this._isActive && `main-navigation__item--active`}
+            ${this._isStats && `main-navigation__item--additional`}">
+        ${this._title} ${this._count >= 0 ? `<span class="main-navigation__item-count">${this._count}</span>` : ``}
+      </a>`;
+  }
 
-export {renderFilter, filters, bindFiltersAction};
+  bind() {
+    this.element.addEventListener(`click`, this._onFilterClick);
+  }
+
+  unbind() {
+    this.element.removeEventListener(`click`, this._onFilterClick);
+  }
+
+  update(count) {
+    this._count = count;
+  }
+
+  _partialUpdate() {
+    const parentElement = this._element.parentNode;
+    const oldElement = this._element;
+    this.unrender();
+    parentElement.replaceChild(this.render(), oldElement);
+  }
+}

@@ -150,4 +150,4 @@ const createRandomCard = (data) => {
   };
 };
 
-export {createRandomCard};
+export {createRandomCard, GENRES_LIST};

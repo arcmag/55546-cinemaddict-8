@@ -1,21 +1,22 @@
-import {createDataCardsList, createCardList, renderCardList} from './util';
-import {renderFilter, filters, bindFiltersAction} from './filter';
+import {renderFilterList, updateFilters, filtersList} from './filter-util';
+import {renderCardList, cardsMainBlock, cardsTopBlock, cardsMostBlock} from './card-util';
 
-const filterBlock = document.querySelector(`.main-navigation`);
-filterBlock.innerHTML = filters.map((it) => {
-  return renderFilter(it.name, it.link, it.count, it.isActive, it.isStats);
-}).join(``);
+import {} from './chart-util';
 
-bindFiltersAction(`.main-navigation .main-navigation__item`);
+const filterContainer = document.querySelector(`.main-navigation`);
+filterContainer.innerHTML = ``;
 
-const mainCardsBlock = document.querySelector(`.films-list__container`);
-mainCardsBlock.innerHTML = ``;
-renderCardList(mainCardsBlock, createCardList(createDataCardsList(7)));
+renderFilterList(filtersList);
+updateFilters();
 
-const topCardsBlock = document.querySelector(`.films-list--extra .films-list__container`);
-topCardsBlock.innerHTML = ``;
-renderCardList(topCardsBlock, createCardList(createDataCardsList(2)));
+const mainBlock = document.querySelector(`.films-list__container`);
+mainBlock.innerHTML = ``;
+renderCardList(mainBlock, cardsMainBlock);
 
-const mostCardsBlock = document.querySelector(`.films-list--extra:nth-child(3) .films-list__container`);
-mostCardsBlock.innerHTML = ``;
-renderCardList(mostCardsBlock, createCardList(createDataCardsList(2)));
+const topBlock = document.querySelector(`.films-list--extra .films-list__container`);
+topBlock.innerHTML = ``;
+renderCardList(topBlock, cardsTopBlock);
+
+const mostBlock = document.querySelector(`.films-list--extra:nth-child(3) .films-list__container`);
+mostBlock.innerHTML = ``;
+renderCardList(mostBlock, cardsMostBlock);
