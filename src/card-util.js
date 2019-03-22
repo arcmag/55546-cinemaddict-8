@@ -79,12 +79,13 @@ const getCardsByCategory = (cardsList, category) => {
       cards = cardsList;
       break;
     case `watchlist`:
-      cards = cardsList.filter((it) => it._isWatched);
+      cards = cardsList.filter((it) => it._isWatchlist);
       break;
     case `history`:
+      cards = cardsList.filter((it) => it._isWatched);
       break;
     case `favorites`:
-      cards = cardsList.filter((it) => it._isFavotite);
+      cards = cardsList.filter((it) => it._isFavorite);
       break;
   }
 
