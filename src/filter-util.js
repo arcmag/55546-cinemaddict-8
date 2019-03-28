@@ -1,9 +1,10 @@
 import Filter from './filter';
-import {statisticChart, getDataPriorityGenres} from './chart-util';
+import {chartUpdate, getDataPriorityGenres, updateDataStatistic} from './chart-util';
 import {
+  createGenresList,
   renderCardList,
   getCardsByCategory,
-  cardsMainBlock,
+  cardFilms,
   getWathedFilms,
   getTotalDurationFilms
 } from './card-util';
@@ -20,7 +21,6 @@ const HIDDEN_CLASS = `visually-hidden`;
 
 const filmsBlock = document.querySelector(`.films`);
 const statisticBlock = document.querySelector(`.statistic`);
-const statisticTextList = document.querySelector(`.statistic__text-list`);
 
 const filterContainer = document.querySelector(`.main-navigation`);
 const mainBlock = document.querySelector(`.films-list__container`);
@@ -35,44 +35,23 @@ const createFilter = (data) => {
     if (filter._title === FilterTitle.STATS) {
       statisticBlock.classList.remove(HIDDEN_CLASS);
       const films = getWathedFilms();
-      const totalTime = getTotalDurationFilms(films);
-      const dataGenres = getDataPriorityGenres(films);
-      let topGenre = `-`;
-      let countGenre = 0;
+      const genres = createGenresList(films);
 
-      Object.keys(dataGenres).forEach((genre) => {
-        if (dataGenres[genre] > countGenre) {
-          countGenre = dataGenres[genre];
-          topGenre = genre;
-        }
+      updateDataStatistic({
+        totalFilms: films.length,
+        totalTime: getTotalDurationFilms(films),
+        topGenre: Object.entries(getDataPriorityGenres(films, genres)).sort((a, b) =>
+          b[1] - a[1])[0][0]
       });
 
-      statisticTextList.innerHTML = `
-        <li class="statistic__text-item">
-          <h4 class="statistic__item-title">You watched</h4>
-          <p class="statistic__item-text">
-            ${films.length} <span class="statistic__item-description">movies</span>
-          </p>
-        </li>
-        <li class="statistic__text-item">
-          <h4 class="statistic__item-title">Total duration</h4>
-          <p class="statistic__item-text">
-            ${totalTime.hours} <span class="statistic__item-description">h</span>
-            ${totalTime.minutes} <span class="statistic__item-description">m</span>
-          </p>
-        </li>
-        <li class="statistic__text-item">
-          <h4 class="statistic__item-title">Top genre</h4>
-          <p class="statistic__item-text">${topGenre}</p>
-        </li>
-        `;
-
-      statisticChart.data.datasets[0].data = Object.values(getDataPriorityGenres(films));
-      statisticChart.update();
+      chartUpdate({
+        data: Object.values(getDataPriorityGenres(films, genres)),
+        labels: genres
+      });
     } else {
       filmsBlock.classList.remove(HIDDEN_CLASS);
       mainBlock.innerHTML = ``;
-      renderCardList(mainBlock, getCardsByCategory(cardsMainBlock, filter._title));
+      renderCardList(mainBlock, getCardsByCategory(cardFilms, filter._title));
     }
 
     filtersList.forEach((it) => {
@@ -93,7 +72,7 @@ const renderFilterList = (filterList) => filterList.forEach((it) => renderFilter
 const updateFilters = () => {
   filtersList.forEach((it) => {
     if (it._title !== FilterTitle.STATS && it._title !== FilterTitle.ALL) {
-      it.update(getCardsByCategory(cardsMainBlock, it._title).length);
+      it.update(getCardsByCategory(cardFilms, it._title).length);
       it._partialUpdate();
     }
   });
@@ -108,12 +87,7 @@ const filtersDataList = [
 ];
 
 const filtersList = createFiltersList(filtersDataList);
+filterContainer.innerHTML = ``;
+renderFilterList(filtersList);
 
-export {
-  updateFilters,
-  createFilter,
-  createFiltersList,
-  renderFilter,
-  renderFilterList,
-  filtersList
-};
+export {updateFilters};

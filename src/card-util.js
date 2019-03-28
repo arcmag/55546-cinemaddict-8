@@ -1,22 +1,51 @@
-import {createRandomCard} from './data-card';
+import {getRandomInt} from './util';
+import {
+  getRandomAutorName,
+  getRandomDescription
+} from './data-card';
 import {updateFilters} from './filter-util';
+import {createChart} from './chart-util';
 import CardFilm from './card-film';
 import CardFilmDetails from './film-details';
-
-const COUNT_CARD_MAIN_BLOCK = 7;
-const COUNT_CARD_TOP_BLOCK = 2;
-const COUNT_CARD_MOST_BLOCK = 2;
+import ModelFilm from './model-film';
+import BackendAPI from './backend-api';
 
 const HOUR_TIME = 60;
 
-const createDataCardsList = (numberCards) => {
-  const dataCardsList = [];
+const AUTHORIZATION_NUMBER = 735123312231214;
+const AUTHORIZATION = `Basic dXNlckBwYXNzd29yZAo=${AUTHORIZATION_NUMBER}`;
+const END_POINT = `https://es8-demo-srv.appspot.com/moowle`;
 
-  for (let i = 0; i < numberCards; i++) {
-    dataCardsList.push(createRandomCard());
-  }
+const EMOTION_LIST = [`grinning`, `sleeping`, `neutral-face`];
 
-  return dataCardsList;
+const api = new BackendAPI({endPoint: END_POINT, authorization: AUTHORIZATION});
+
+const mainBlock = document.querySelector(`.films-list__container`);
+const topBlock = document.querySelector(`.films-list--extra .films-list__container`);
+const mostBlock = document.querySelector(`.films-list--extra:nth-child(3) .films-list__container`);
+
+let cardFilms = [];
+
+const createGenresList = (films) => {
+  const genres = new Set([]);
+
+  films.forEach((film) => {
+    film.genre.forEach((genre) => {
+      genres.add(genre);
+    });
+  });
+
+  return genres;
+};
+
+const createComment = (data) => {
+  return {
+    author: getRandomAutorName(),
+    comment: getRandomDescription(),
+    date: Date.now(),
+    commentEmoji: EMOTION_LIST[getRandomInt(0, EMOTION_LIST.length)],
+    ...data
+  };
 };
 
 const createCard = (data) => {
@@ -24,11 +53,25 @@ const createCard = (data) => {
   const cardDetails = new CardFilmDetails(data);
 
   card.onClick = () => {
+    cardDetails.update({
+      isWatchlist: card.isWatchlist,
+      isFavorite: card.isFavorite,
+      isWatched: card.isWatched
+    });
     document.body.appendChild(cardDetails.render());
   };
 
+  card.onFavoriteButtonClick = () => {
+    card.isFavorite = !card.isFavorite;
+    updateFilters();
+
+    card.unbind();
+    card.uncache();
+    card._partialUpdate();
+  };
+
   card.onAddToWatchList = () => {
-    card._isFavotite = !card._isFavotite;
+    card.isWatchlist = !card.isWatchlist;
     updateFilters();
 
     card.unbind();
@@ -37,7 +80,7 @@ const createCard = (data) => {
   };
 
   card.onMarkAsWatched = () => {
-    card._isWatched = !card._isWatched;
+    card.isWatched = !card.isWatched;
     updateFilters();
 
     card.unbind();
@@ -45,15 +88,53 @@ const createCard = (data) => {
     card._partialUpdate();
   };
 
-  cardDetails.onClose = (newData) => {
-    card.update(newData);
-    card.unbind();
-    card.uncache();
-    card._partialUpdate();
+  cardDetails.onAddComment = (newData) => {
+    card.comments.push(createComment({
+      comment: newData.comment,
+      commentEmoji: newData.commentEmoji
+    }));
 
+    card.update(newData);
     cardDetails.update(newData);
+    cardDetails.disabledInputComment();
+
+    api.updateFilm({id: card.id, data: ModelFilm.staticToRAW(card)})
+      .then(() => {
+        cardDetails.includedInputComment();
+
+        cardDetails.commentUpdate();
+        cardDetails.inputCommentClear();
+
+        renderCardsByCategory(cardFilms);
+        updateFilters();
+      })
+      .catch(() => {
+        cardDetails.includedInputComment();
+        cardDetails.commentSubmitError();
+      });
+  };
+
+  cardDetails.onAddRating = (newData) => {
+    card.update(newData);
+    cardDetails.update(newData);
+    cardDetails.disabledRatingList();
+
+    api.updateFilm({id: card.id, data: ModelFilm.staticToRAW(card)})
+      .then(() => {
+        cardDetails.includedRatingList();
+        cardDetails.ratingUpdate();
+      })
+      .catch(() => {
+        cardDetails.includedRatingList();
+        cardDetails.ratingSubmitError();
+      });
+  };
+
+  cardDetails.onClose = () => {
     cardDetails.element.remove();
     cardDetails.unrender();
+
+    updateFilters();
   };
 
   return card;
@@ -79,23 +160,23 @@ const getCardsByCategory = (cardsList, category) => {
       cards = cardsList;
       break;
     case `watchlist`:
-      cards = cardsList.filter((it) => it._isWatchlist);
+      cards = cardsList.filter((it) => it.isWatchlist);
       break;
     case `history`:
-      cards = cardsList.filter((it) => it._isWatched);
+      cards = cardsList.filter((it) => it.isWatched);
       break;
     case `favorites`:
-      cards = cardsList.filter((it) => it._isFavorite);
+      cards = cardsList.filter((it) => it.isFavorite);
       break;
   }
 
   return cards;
 };
 
-const getWathedFilms = () => cardsMainBlock.filter((it) => it._isWatched);
+const getWathedFilms = () => cardFilms.filter((it) => it.isWatched);
 
 const getTotalDurationFilms = (films) => {
-  const totalMinutes = films.reduce((total, film) => total + film._durationMinutes, 0);
+  const totalMinutes = films.reduce((total, film) => total + film.runtime, 0);
 
   return {
     hours: parseInt(totalMinutes / HOUR_TIME, 10),
@@ -103,17 +184,40 @@ const getTotalDurationFilms = (films) => {
   };
 };
 
-const cardsMainBlock = createCardList(createDataCardsList(COUNT_CARD_MAIN_BLOCK));
-const cardsTopBlock = createCardList(createDataCardsList(COUNT_CARD_TOP_BLOCK));
-const cardsMostBlock = createCardList(createDataCardsList(COUNT_CARD_MOST_BLOCK));
+const renderCardsByCategory = (films) => {
+  const topFilms = films.sort((prevFilm, nextFilm) => {
+    return nextFilm.totalRating - prevFilm.totalRating;
+  }).splice(0, 2);
+
+  const mostFilms = films.sort((prevFilm, nextFilm) => {
+    return nextFilm.comments.length - prevFilm.comments.length;
+  }).splice(0, 2);
+
+  topBlock.innerHTML = ``;
+  renderCardList(topBlock, topFilms);
+
+  mostBlock.innerHTML = ``;
+  renderCardList(mostBlock, mostFilms);
+
+  mainBlock.innerHTML = ``;
+  renderCardList(mainBlock, films);
+
+  films.push(...topFilms, ...mostFilms);
+};
+
+api.getFilms()
+  .then((films) => {
+    cardFilms = createCardList(films);
+    renderCardsByCategory(cardFilms);
+    createChart();
+    updateFilters();
+  });
 
 export {
+  createGenresList,
   getWathedFilms,
+  cardFilms,
   getTotalDurationFilms,
-  cardsMainBlock,
-  cardsTopBlock,
-  cardsMostBlock,
-  createDataCardsList,
   createCard,
   renderCard,
   createCardList,

@@ -1,26 +1,35 @@
 import Component from './component';
 import moment from 'moment';
 
-const HOUR_TIME = 60;
+const KEY_CODE_ENTER = 13;
 
 export default class CardFilmDetails extends Component {
   constructor(data) {
     super();
-    this._title = data.title;
-    this._rating = data.rating;
-    this._score = data.score;
-    this._duration = (data.duration.hours * HOUR_TIME) + data.duration.minutes;
-    this._genre = data.genre;
-    this._date = data.date;
-    this._img = data.img;
-    this._imgAlt = data.imgAlt;
-    this._description = data.description;
-    this._comments = data.comments;
+    this.id = data.id;
+    this.comments = data.comments;
+    this.actors = data.actors;
+    this.personalRating = data.personalRating;
+    this.ageRating = data.ageRating;
+    this.altTitle = data.altTitle;
+    this.description = data.description;
+    this.director = data.director;
+    this.genre = data.genre;
+    this.poster = data.poster;
+    this.date = data.date;
+    this.country = data.country;
+    this.runtime = data.runtime;
+    this.totalRating = data.totalRating;
+    this.title = data.title;
+    this.writers = data.writers;
 
-    this._isWatched = false;
-    this._isFavotite = false;
+    this.isWatchlist = data.isWatchlist;
+    this.isWatched = data.isWatched;
+    this.isFavorite = data.isFavorite;
 
+    this._onRatingButtonClick = this._onRatingButtonClick.bind(this);
     this._onCloseButtonClick = this._onCloseButtonClick.bind(this);
+    this._onCommentInputKeyDown = this._onCommentInputKeyDown.bind(this);
   }
 
   _processForm(formData) {
@@ -50,8 +59,25 @@ export default class CardFilmDetails extends Component {
     this._onClose = fn;
   }
 
+  set onAddComment(fn) {
+    this._onAddComment = fn;
+  }
+
+  set onAddRating(fn) {
+    this._onAddRating = fn;
+  }
+
+  _onRatingButtonClick() {
+    const formData = new FormData(this._filmForm);
+    const newData = this._processForm(formData);
+
+    if (typeof this._onAddRating === `function`) {
+      this._onAddRating(newData);
+    }
+  }
+
   _onCloseButtonClick() {
-    const formData = new FormData(this._element.querySelector(`.film-details__inner`));
+    const formData = new FormData(this._filmForm);
     const newData = this._processForm(formData);
 
     if (typeof this._onClose === `function`) {
@@ -59,35 +85,18 @@ export default class CardFilmDetails extends Component {
     }
   }
 
-  get template() {
-    const ratingCount = 10;
-    let ratingsString = ``;
+  _onCommentInputKeyDown(evt) {
+    const formData = new FormData(this._filmForm);
+    const newData = this._processForm(formData);
 
-    const commentsString = this._comments.map((it) => {
-      return `
-        <li class="film-details__comment">
-          <span class="film-details__comment-emoji">😴</span>
-          <div>
-            <p class="film-details__comment-text">${it.text}</p>
-            <p class="film-details__comment-info">
-              <span class="film-details__comment-author">${it.author}</span>
-              <span class="film-details__comment-day">${moment(it.date).fromNow(true)}</span>
-            </p>
-          </div>
-        </li>`;
-    }).join(``);
-
-    for (let i = 1; i <= ratingCount; i++) {
-      ratingsString += `
-        <input
-          type="radio"
-          name="score"
-          class="film-details__user-rating-input visually-hidden"
-          value="${i}"
-          id="rating-${i}">
-        <label class="film-details__user-rating-label" for="rating-${i}">${i}</label>`;
+    if (typeof this._onAddComment === `function`) {
+      if ((evt.ctrlKey && evt.keyCode === KEY_CODE_ENTER) && !this._inputComment.disabled) {
+        this._onAddComment(newData);
+      }
     }
+  }
 
+  get template() {
     return `
       <section class="film-details">
         <form class="film-details__inner" action="" method="get">
@@ -96,76 +105,87 @@ export default class CardFilmDetails extends Component {
           </div>
           <div class="film-details__info-wrap">
             <div class="film-details__poster">
-              <img class="film-details__poster-img" src="${this._img}" alt="${this._imgAlt}">
+              <img class="film-details__poster-img" src="${this.poster}" alt="">
 
-              <p class="film-details__age">18+</p>
+              <p class="film-details__age">${this.ageRating}+</p>
             </div>
 
             <div class="film-details__info">
               <div class="film-details__info-head">
                 <div class="film-details__title-wrap">
-                  <h3 class="film-details__title">${this._title}</h3>
-                  <p class="film-details__title-original">Original: Невероятная семейка</p>
+                  <h3 class="film-details__title">${this.title}</h3>
+                  <p class="film-details__title-original">${this.altTitle}</p>
                 </div>
 
                 <div class="film-details__rating">
-                  <p class="film-details__total-rating">${this._rating}</p>
-                  <p class="film-details__user-rating">Your rate ${this._score}</p>
+                  <p class="film-details__total-rating">${this.totalRating}</p>
+                  <p class="film-details__user-rating">Your rate ${this.personalRating}</p>
                 </div>
               </div>
 
               <table class="film-details__table">
                 <tr class="film-details__row">
                   <td class="film-details__term">Director</td>
-                  <td class="film-details__cell">Brad Bird</td>
+                  <td class="film-details__cell">${this.director}</td>
                 </tr>
                 <tr class="film-details__row">
                   <td class="film-details__term">Writers</td>
-                  <td class="film-details__cell">Brad Bird</td>
+                  <td class="film-details__cell">${[...this.writers].map((it) => it).join(`, `)}</td>
                 </tr>
                 <tr class="film-details__row">
                   <td class="film-details__term">Actors</td>
-                  <td class="film-details__cell">Samuel L. Jackson, Catherine Keener, Sophia Bush</td>
+                  <td class="film-details__cell">${this.actors.map((it) => it).join(`, `)}</td>
                 </tr>
                 <tr class="film-details__row">
                   <td class="film-details__term">Release Date</td>
-                  <td class="film-details__cell">${moment(this._date).format(`D MMMM YYYY`)}</td>
+                  <td class="film-details__cell">${moment(this.date).format(`D MMMM YYYY`)}</td>
                 </tr>
                 <tr class="film-details__row">
                   <td class="film-details__term">Runtime</td>
-                  <td class="film-details__cell">${this._duration} min</td>
+                  <td class="film-details__cell">${this.runtime} min</td>
                 </tr>
                 <tr class="film-details__row">
                   <td class="film-details__term">Country</td>
-                  <td class="film-details__cell">USA</td>
+                  <td class="film-details__cell">${this.country}</td>
                 </tr>
                 <tr class="film-details__row">
                   <td class="film-details__term">Genres</td>
                   <td class="film-details__cell">
-                    ${this._genre.map((it) => `<span class="film-details__genre">${it}</span>`).join(``)}
+                    ${[...this.genre].map((it) => `<span class="film-details__genre">${it}</span>`).join(`, `)}
                 </tr>
               </table>
 
-              <p class="film-details__film-description">${this._description}</p>
+              <p class="film-details__film-description">${this.description}</p>
             </div>
           </div>
 
           <section class="film-details__controls">
-            <input type="checkbox" class="film-details__control-input visually-hidden" id="watchlist" name="watchlist" ${this._isWatchlist && `checked`}>
+            <input type="checkbox" class="film-details__control-input visually-hidden" id="watchlist" name="watchlist" ${this.isWatchlist ? `checked` : ``}>
             <label for="watchlist" class="film-details__control-label film-details__control-label--watchlist">Add to watchlist</label>
 
-            <input type="checkbox" class="film-details__control-input visually-hidden" id="watched" name="watched" ${this._isWatched && `checked`}>
+            <input type="checkbox" class="film-details__control-input visually-hidden" id="watched" name="watched" ${this.isWatched ? `checked` : ``}>
             <label for="watched" class="film-details__control-label film-details__control-label--watched">Already watched</label>
 
-            <input type="checkbox" class="film-details__control-input visually-hidden" id="favorite" name="favorite" ${this._isFavorite && `checked`}>
+            <input type="checkbox" class="film-details__control-input visually-hidden" id="favorite" name="favorite" ${this.isFavorite ? `checked` : ``}>
             <label for="favorite" class="film-details__control-label film-details__control-label--favorite">Add to favorites</label>
           </section>
 
           <section class="film-details__comments-wrap">
-            <h3 class="film-details__comments-title">Comments <span class="film-details__comments-count">${this._comments.length}</span></h3>
+            <h3 class="film-details__comments-title">Comments <span class="film-details__comments-count">${this.comments.length}</span></h3>
 
             <ul class="film-details__comments-list">
-              ${commentsString}
+  ${this.comments.map((it) =>
+    `<li class="film-details__comment">
+      <span class="film-details__comment-emoji">😴</span>
+      <div>
+        <p class="film-details__comment-text">${it.comment}</p>
+        <p class="film-details__comment-info">
+          <span class="film-details__comment-author">${it.author}</span>
+          <span class="film-details__comment-day">${moment(it.date).fromNow(true)}</span>
+        </p>
+      </div>
+    </li>`
+  ).join(``)}
             </ul>
 
             <div class="film-details__new-comment">
@@ -198,15 +218,25 @@ export default class CardFilmDetails extends Component {
 
             <div class="film-details__user-score">
               <div class="film-details__user-rating-poster">
-                <img src="${this._img}" alt="${this._imgAlt}" class="film-details__user-rating-img">
+                <img src="${this.poster}" alt="" class="film-details__user-rating-img">
               </div>
 
               <section class="film-details__user-rating-inner">
-                <h3 class="film-details__user-rating-title">${this._title}</h3>
+                <h3 class="film-details__user-rating-title">${this.title}</h3>
 
                 <p class="film-details__user-rating-feelings">How you feel it?</p>
 
-                <div class="film-details__user-rating-score">${ratingsString}</div>
+                <div class="film-details__user-rating-score">${
+  Array(10).fill(null).map((it, idx) =>
+    `<input
+      type="radio"
+      name="score"
+      class="film-details__user-rating-input visually-hidden"
+      value="${++idx}"
+      id="rating-${idx}">
+    <label class="film-details__user-rating-label" for="rating-${idx}">${idx}</label>`
+  ).join(``)}
+                </div>
               </section>
             </div>
           </section>
@@ -215,28 +245,118 @@ export default class CardFilmDetails extends Component {
   }
 
   cache() {
+    this._filmForm = this._element.querySelector(`.film-details__inner`);
     this._btnClose = this._element.querySelector(`.film-details__close-btn`);
+    this._inputComment = this._element.querySelector(`.film-details__comment-input`);
+    this._commentsList = this._element.querySelector(`.film-details__comments-list`);
+    this._ratingList = this._element.querySelector(`.film-details__user-rating-score`);
+    this._ratingButtons = this._element.querySelectorAll(`.film-details__user-rating-input`);
+    this._userRating = this._element.querySelector(`.film-details__user-rating`);
   }
 
   uncache() {
+    this._filmForm = null;
     this._btnClose = null;
+    this._inputComment = null;
+    this._commentsList = null;
+    this._ratingList = null;
+    this._ratingButtons = null;
+    this._userRating = null;
   }
 
   bind() {
+    this._ratingList.addEventListener(`change`, this._onRatingButtonClick);
     this._btnClose.addEventListener(`click`, this._onCloseButtonClick);
+    this._inputComment.addEventListener(`keydown`, this._onCommentInputKeyDown);
   }
 
   unbind() {
+    this._ratingList.removeEventListener(`change`, this._onRatingButtonClick);
     this._btnClose.removeEventListener(`click`, this._onCloseButtonClick);
+    this._inputComment.removeEventListener(`keydown`, this._onCommentInputKeyDown);
   }
 
   update(data) {
-    this._comment = data.comment;
-    this._commentEmoji = data.commentEmoji;
-    this._isFavorite = data.isFavorite;
-    this._isWatched = data.isWatched;
-    this._isWatchlist = data.isWatchlist;
-    this._score = data.score;
+    if (data.isFavorite !== undefined) {
+      this.isFavorite = data.isFavorite;
+    }
+
+    if (data.isWatched !== undefined) {
+      this.isWatched = data.isWatched;
+    }
+
+    if (data.isWatchlist !== undefined) {
+      this.isWatchlist = data.isWatchlist;
+    }
+
+    if (data.personalRating !== undefined) {
+      this.personalRating = data.personalRating;
+    }
+
+    if (data.score !== undefined) {
+      this.personalRating = data.score;
+    }
+  }
+
+  commentUpdate() {
+    this._commentsList.innerHTML = this.comments.map((it) =>
+      `<li class="film-details__comment">
+        <span class="film-details__comment-emoji">😴</span>
+        <div>
+          <p class="film-details__comment-text">${it.comment}</p>
+          <p class="film-details__comment-info">
+            <span class="film-details__comment-author">${it.author}</span>
+            <span class="film-details__comment-day">${moment(it.date).fromNow(true)}</span>
+          </p>
+        </div>
+      </li>`
+    ).join(``);
+  }
+
+  inputCommentClear() {
+    this._inputComment.value = ``;
+  }
+
+  disabledInputComment() {
+    this._inputComment.classList.remove(`shake`);
+    this._inputComment.disabled = true;
+  }
+
+  includedInputComment() {
+    this._inputComment.disabled = false;
+  }
+
+  commentSubmitError() {
+    this._inputComment.classList.add(`shake`);
+  }
+
+  disabledRatingList() {
+    this._ratingList.classList.remove(`shake`);
+    this._ratingList.classList.remove(`film-details__user-rating-score--error`);
+    [...this._ratingButtons].forEach((it) => {
+      it.disabled = true;
+    });
+  }
+
+  includedRatingList() {
+    [...this._ratingButtons].forEach((it) => {
+      it.disabled = false;
+    });
+  }
+
+  ratingUpdate() {
+    this._userRating.innerHTML = `Your rate ` + this.personalRating;
+  }
+
+  ratingSubmitError() {
+    this._ratingList.classList.add(`shake`);
+    this._ratingList.classList.add(`film-details__user-rating-score--error`);
+  }
+
+  _partialUpdate() {
+    const parentElement = this._element.parentNode;
+    const oldElement = this._element;
+    parentElement.replaceChild(this.render(), oldElement);
   }
 
   static createMapper(target) {
