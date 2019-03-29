@@ -1,4 +1,3 @@
-import {getRandomInt} from './util';
 import {
   getRandomAutorName,
   getRandomDescription
@@ -17,17 +16,11 @@ const AUTHORIZATION_NUMBER = 735123312231214;
 const AUTHORIZATION = `Basic dXNlckBwYXNzd29yZAo=${AUTHORIZATION_NUMBER}`;
 const END_POINT = `https://es8-demo-srv.appspot.com/moowle`;
 
-const EMOTION_LIST = [`grinning`, `sleeping`, `neutral-face`];
-
 const api = new BackendAPI({endPoint: END_POINT, authorization: AUTHORIZATION});
 
 const mainBlock = document.querySelector(`.films-list__container`);
 const topBlock = document.querySelector(`.films-list__container--top`);
 const mostBlock = document.querySelector(`.films-list__container--commented`);
-
-mainBlock.innerHTML = ``;
-topBlock.innerHTML = ``;
-mostBlock.innerHTML = ``;
 
 const boardNoFilms = document.querySelector(`.board__no-films`);
 
@@ -50,7 +43,7 @@ const createComment = (data) => {
     author: getRandomAutorName(),
     comment: getRandomDescription(),
     date: Date.now(),
-    commentEmoji: EMOTION_LIST[getRandomInt(0, EMOTION_LIST.length)],
+    emotion: data.commentEmoji,
     ...data
   };
 };

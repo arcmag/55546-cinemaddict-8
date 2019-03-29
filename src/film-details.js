@@ -3,6 +3,12 @@ import moment from 'moment';
 
 const KEY_CODE_ENTER = 13;
 
+const Emotion = {
+  'grinning': `😀`,
+  'sleeping': `😴`,
+  'neutral-face': `😐`
+};
+
 export default class CardFilmDetails extends Component {
   constructor(data) {
     super();
@@ -190,7 +196,7 @@ export default class CardFilmDetails extends Component {
             <ul class="film-details__comments-list">
   ${this.comments.map((it) =>
     `<li class="film-details__comment">
-      <span class="film-details__comment-emoji">😴</span>
+      <span class="film-details__comment-emoji">${Emotion[it.emotion]}</span>
       <div>
         <p class="film-details__comment-text">${it.comment}</p>
         <p class="film-details__comment-info">
