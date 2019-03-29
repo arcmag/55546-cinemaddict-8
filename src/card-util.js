@@ -11,6 +11,7 @@ import ModelFilm from './model-film';
 import BackendAPI from './backend-api';
 
 const HOUR_TIME = 60;
+const HIDDEN_CLASS = `visually-hidden`;
 
 const AUTHORIZATION_NUMBER = 735123312231214;
 const AUTHORIZATION = `Basic dXNlckBwYXNzd29yZAo=${AUTHORIZATION_NUMBER}`;
@@ -23,6 +24,8 @@ const api = new BackendAPI({endPoint: END_POINT, authorization: AUTHORIZATION});
 const mainBlock = document.querySelector(`.films-list__container`);
 const topBlock = document.querySelector(`.films-list--extra .films-list__container`);
 const mostBlock = document.querySelector(`.films-list--extra:nth-child(3) .films-list__container`);
+
+const boardNoFilms = document.querySelector(`.board__no-films`);
 
 let cardFilms = [];
 
@@ -63,29 +66,50 @@ const createCard = (data) => {
 
   card.onFavoriteButtonClick = () => {
     card.isFavorite = !card.isFavorite;
-    updateFilters();
 
-    card.unbind();
-    card.uncache();
-    card._partialUpdate();
+    api.updateFilm({id: card.id, data: ModelFilm.staticToRAW(card)})
+      .then(() => {
+        card.unbind();
+        card.uncache();
+        card._partialUpdate();
+
+        updateFilters();
+      })
+      .catch(() => {
+        card.isFavorite = !card.isFavorite;
+      });
   };
 
   card.onAddToWatchList = () => {
     card.isWatchlist = !card.isWatchlist;
-    updateFilters();
 
-    card.unbind();
-    card.uncache();
-    card._partialUpdate();
+    api.updateFilm({id: card.id, data: ModelFilm.staticToRAW(card)})
+      .then(() => {
+        card.unbind();
+        card.uncache();
+        card._partialUpdate();
+
+        updateFilters();
+      })
+      .catch(() => {
+        card.isWatchlist = !card.isWatchlist;
+      });
   };
 
   card.onMarkAsWatched = () => {
     card.isWatched = !card.isWatched;
-    updateFilters();
 
-    card.unbind();
-    card.uncache();
-    card._partialUpdate();
+    api.updateFilm({id: card.id, data: ModelFilm.staticToRAW(card)})
+      .then(() => {
+        card.unbind();
+        card.uncache();
+        card._partialUpdate();
+
+        updateFilters();
+      })
+      .catch(() => {
+        card.isWatched = !card.isWatched;
+      });
   };
 
   cardDetails.onAddComment = (newData) => {
@@ -127,6 +151,20 @@ const createCard = (data) => {
       .catch(() => {
         cardDetails.includedRatingList();
         cardDetails.ratingSubmitError();
+      });
+  };
+
+  cardDetails.onChangeFlag = (newData) => {
+    card.update(newData);
+    cardDetails.update(newData);
+
+    api.updateFilm({id: card.id, data: ModelFilm.staticToRAW(card)})
+      .then(() => {
+        card.unbind();
+        card.uncache();
+        card._partialUpdate();
+
+        updateFilters();
       });
   };
 
@@ -207,10 +245,14 @@ const renderCardsByCategory = (films) => {
 
 api.getFilms()
   .then((films) => {
+    boardNoFilms.classList.add(HIDDEN_CLASS);
     cardFilms = createCardList(films);
     renderCardsByCategory(cardFilms);
     createChart();
     updateFilters();
+  })
+  .catch(() => {
+    boardNoFilms.innerHTML = `Something went wrong while loading movies. Check your connection or try again later`;
   });
 
 export {

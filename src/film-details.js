@@ -30,6 +30,7 @@ export default class CardFilmDetails extends Component {
     this._onRatingButtonClick = this._onRatingButtonClick.bind(this);
     this._onCloseButtonClick = this._onCloseButtonClick.bind(this);
     this._onCommentInputKeyDown = this._onCommentInputKeyDown.bind(this);
+    this._onFlagButtonClick = this._onFlagButtonClick.bind(this);
   }
 
   _processForm(formData) {
@@ -65,6 +66,19 @@ export default class CardFilmDetails extends Component {
 
   set onAddRating(fn) {
     this._onAddRating = fn;
+  }
+
+  set onChangeFlag(fn) {
+    this._onChangeFlag = fn;
+  }
+
+  _onFlagButtonClick() {
+    const formData = new FormData(this._filmForm);
+    const newData = this._processForm(formData);
+
+    if (typeof this._onChangeFlag === `function`) {
+      this._onChangeFlag(newData);
+    }
   }
 
   _onRatingButtonClick() {
@@ -252,6 +266,8 @@ export default class CardFilmDetails extends Component {
     this._ratingList = this._element.querySelector(`.film-details__user-rating-score`);
     this._ratingButtons = this._element.querySelectorAll(`.film-details__user-rating-input`);
     this._userRating = this._element.querySelector(`.film-details__user-rating`);
+    this._flagsWrapper = this._element.querySelector(`.film-details__controls`);
+
   }
 
   uncache() {
@@ -262,18 +278,21 @@ export default class CardFilmDetails extends Component {
     this._ratingList = null;
     this._ratingButtons = null;
     this._userRating = null;
+    this._flagsWrapper = null;
   }
 
   bind() {
     this._ratingList.addEventListener(`change`, this._onRatingButtonClick);
     this._btnClose.addEventListener(`click`, this._onCloseButtonClick);
     this._inputComment.addEventListener(`keydown`, this._onCommentInputKeyDown);
+    this._flagsWrapper.addEventListener(`change`, this._onFlagButtonClick);
   }
 
   unbind() {
     this._ratingList.removeEventListener(`change`, this._onRatingButtonClick);
     this._btnClose.removeEventListener(`click`, this._onCloseButtonClick);
     this._inputComment.removeEventListener(`keydown`, this._onCommentInputKeyDown);
+    this._flagsWrapper.removeEventListener(`change`, this._onFlagButtonClick);
   }
 
   update(data) {
