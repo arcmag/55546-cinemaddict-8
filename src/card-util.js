@@ -22,8 +22,12 @@ const EMOTION_LIST = [`grinning`, `sleeping`, `neutral-face`];
 const api = new BackendAPI({endPoint: END_POINT, authorization: AUTHORIZATION});
 
 const mainBlock = document.querySelector(`.films-list__container`);
-const topBlock = document.querySelector(`.films-list--extra .films-list__container`);
-const mostBlock = document.querySelector(`.films-list--extra:nth-child(3) .films-list__container`);
+const topBlock = document.querySelector(`.films-list__container--top`);
+const mostBlock = document.querySelector(`.films-list__container--commented`);
+
+mainBlock.innerHTML = ``;
+topBlock.innerHTML = ``;
+mostBlock.innerHTML = ``;
 
 const boardNoFilms = document.querySelector(`.board__no-films`);
 
