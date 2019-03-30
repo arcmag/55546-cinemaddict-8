@@ -36,7 +36,7 @@ export default class ModelFilm {
         'alternative_title': this.altTitle,
         'description': this.description,
         'director': this.director,
-        'genre': this.genre,
+        'genre': [...this.genre],
         'poster': this.poster,
         'release': {
           'date': this.date,
@@ -45,7 +45,7 @@ export default class ModelFilm {
         'runtime': this.runtime,
         'title': this.title,
         'total_rating': this.totalRating,
-        'writers': this.writers
+        'writers': [...this.writers]
       },
       'user_details': {
         'already_watched': this.isWatched,

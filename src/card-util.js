@@ -8,15 +8,20 @@ import CardFilm from './card-film';
 import CardFilmDetails from './film-details';
 import ModelFilm from './model-film';
 import BackendAPI from './backend-api';
+import Store from './store';
+import Provider from './provider';
 
 const HOUR_TIME = 60;
 const HIDDEN_CLASS = `visually-hidden`;
 
-const AUTHORIZATION_NUMBER = 735123312231214;
+const AUTHORIZATION_NUMBER = 735123312231215;
 const AUTHORIZATION = `Basic dXNlckBwYXNzd29yZAo=${AUTHORIZATION_NUMBER}`;
 const END_POINT = `https://es8-demo-srv.appspot.com/moowle`;
+const FILMS_STORE_KEY = `films-store-key`;
 
 const api = new BackendAPI({endPoint: END_POINT, authorization: AUTHORIZATION});
+const store = new Store({key: FILMS_STORE_KEY, storage: localStorage});
+const provider = new Provider({api, store, generateId: () => String(Date.now())});
 
 const mainBlock = document.querySelector(`.films-list__container`);
 const topBlock = document.querySelector(`.films-list__container--top`);
@@ -64,7 +69,7 @@ const createCard = (data) => {
   card.onFavoriteButtonClick = () => {
     card.isFavorite = !card.isFavorite;
 
-    api.updateFilm({id: card.id, data: ModelFilm.staticToRAW(card)})
+    provider.updateFilm({id: card.id, data: ModelFilm.staticToRAW(card)})
       .then(() => {
         card.unbind();
         card.uncache();
@@ -80,7 +85,7 @@ const createCard = (data) => {
   card.onAddToWatchList = () => {
     card.isWatchlist = !card.isWatchlist;
 
-    api.updateFilm({id: card.id, data: ModelFilm.staticToRAW(card)})
+    provider.updateFilm({id: card.id, data: ModelFilm.staticToRAW(card)})
       .then(() => {
         card.unbind();
         card.uncache();
@@ -96,7 +101,7 @@ const createCard = (data) => {
   card.onMarkAsWatched = () => {
     card.isWatched = !card.isWatched;
 
-    api.updateFilm({id: card.id, data: ModelFilm.staticToRAW(card)})
+    provider.updateFilm({id: card.id, data: ModelFilm.staticToRAW(card)})
       .then(() => {
         card.unbind();
         card.uncache();
@@ -119,7 +124,7 @@ const createCard = (data) => {
     cardDetails.update(newData);
     cardDetails.disabledInputComment();
 
-    api.updateFilm({id: card.id, data: ModelFilm.staticToRAW(card)})
+    provider.updateFilm({id: card.id, data: ModelFilm.staticToRAW(card)})
       .then(() => {
         cardDetails.includedInputComment();
 
@@ -140,7 +145,7 @@ const createCard = (data) => {
     cardDetails.update(newData);
     cardDetails.disabledRatingList();
 
-    api.updateFilm({id: card.id, data: ModelFilm.staticToRAW(card)})
+    provider.updateFilm({id: card.id, data: ModelFilm.staticToRAW(card)})
       .then(() => {
         cardDetails.includedRatingList();
         cardDetails.ratingUpdate();
@@ -155,7 +160,7 @@ const createCard = (data) => {
     card.update(newData);
     cardDetails.update(newData);
 
-    api.updateFilm({id: card.id, data: ModelFilm.staticToRAW(card)})
+    provider.updateFilm({id: card.id, data: ModelFilm.staticToRAW(card)})
       .then(() => {
         card.unbind();
         card.uncache();
@@ -240,7 +245,7 @@ const renderCardsByCategory = (films) => {
   films.push(...topFilms, ...mostFilms);
 };
 
-api.getFilms()
+provider.getFilms()
   .then((films) => {
     boardNoFilms.classList.add(HIDDEN_CLASS);
     cardFilms = createCardList(films);
@@ -251,6 +256,15 @@ api.getFilms()
   .catch(() => {
     boardNoFilms.innerHTML = `Something went wrong while loading movies. Check your connection or try again later`;
   });
+
+window.addEventListener(`offline`, () => {
+  document.title = `${document.title}[OFFLINE]`;
+});
+
+window.addEventListener(`online`, () => {
+  provider.syncFilms();
+  document.title = document.title.split(`[OFFLINE]`)[0];
+});
 
 export {
   createGenresList,
