@@ -2,11 +2,17 @@ import Component from './component';
 import moment from 'moment';
 
 const KEY_CODE_ENTER = 13;
+const KEY_CODE_ESC = 27;
 
 const Emotion = {
   'grinning': `😀`,
   'sleeping': `😴`,
   'neutral-face': `😐`
+};
+
+const WatchedStatus = {
+  WATCHLIST: `will watch`,
+  WATCHED: `already watched`
 };
 
 export default class CardFilmDetails extends Component {
@@ -35,8 +41,10 @@ export default class CardFilmDetails extends Component {
 
     this._onRatingButtonClick = this._onRatingButtonClick.bind(this);
     this._onCloseButtonClick = this._onCloseButtonClick.bind(this);
+    this._onCardDetailsKeyDown = this._onCardDetailsKeyDown.bind(this);
     this._onCommentInputKeyDown = this._onCommentInputKeyDown.bind(this);
     this._onFlagButtonClick = this._onFlagButtonClick.bind(this);
+    this._onUndoButtonClick = this._onUndoButtonClick.bind(this);
   }
 
   _processForm(formData) {
@@ -78,6 +86,16 @@ export default class CardFilmDetails extends Component {
     this._onChangeFlag = fn;
   }
 
+  set onDeleteLastComment(fn) {
+    this._onDeleteLastComment = fn;
+  }
+
+  _onUndoButtonClick() {
+    if (typeof this._onDeleteLastComment === `function`) {
+      this._onDeleteLastComment();
+    }
+  }
+
   _onFlagButtonClick() {
     const formData = new FormData(this._filmForm);
     const newData = this._processForm(formData);
@@ -97,11 +115,14 @@ export default class CardFilmDetails extends Component {
   }
 
   _onCloseButtonClick() {
-    const formData = new FormData(this._filmForm);
-    const newData = this._processForm(formData);
-
     if (typeof this._onClose === `function`) {
-      this._onClose(newData);
+      this._onClose();
+    }
+  }
+
+  _onCardDetailsKeyDown(evt) {
+    if (typeof this._onClose === `function` && evt.keyCode === KEY_CODE_ESC) {
+      this._onClose();
     }
   }
 
@@ -117,6 +138,14 @@ export default class CardFilmDetails extends Component {
   }
 
   get template() {
+    let watchedStatusString = ``;
+
+    if (this.isWatched) {
+      watchedStatusString = WatchedStatus.WATCHED;
+    } else if (this.isWatchlist) {
+      watchedStatusString = WatchedStatus.WATCHLIST;
+    }
+
     return `
       <section class="film-details">
         <form class="film-details__inner" action="" method="get">
@@ -150,7 +179,7 @@ export default class CardFilmDetails extends Component {
                 </tr>
                 <tr class="film-details__row">
                   <td class="film-details__term">Writers</td>
-                  <td class="film-details__cell">${[...this.writers].map((it) => it).join(`, `)}</td>
+                  <td class="film-details__cell">${Array.from(this.writers).map((it) => it).join(`, `)}</td>
                 </tr>
                 <tr class="film-details__row">
                   <td class="film-details__term">Actors</td>
@@ -171,7 +200,7 @@ export default class CardFilmDetails extends Component {
                 <tr class="film-details__row">
                   <td class="film-details__term">Genres</td>
                   <td class="film-details__cell">
-                    ${[...this.genre].map((it) => `<span class="film-details__genre">${it}</span>`).join(`, `)}
+                    ${Array.from(this.genre).map((it) => `<span class="film-details__genre">${it}</span>`).join(`, `)}
                 </tr>
               </table>
 
@@ -232,7 +261,9 @@ export default class CardFilmDetails extends Component {
 
           <section class="film-details__user-rating-wrap">
             <div class="film-details__user-rating-controls">
-              <span class="film-details__watched-status film-details__watched-status--active">Already watched</span>
+              <span class="film-details__watched-status ${watchedStatusString !== `` ? `film-details__watched-status--active` : ``}">
+                ${watchedStatusString}
+              </span>
               <button class="film-details__watched-reset" type="button">undo</button>
             </div>
 
@@ -273,7 +304,7 @@ export default class CardFilmDetails extends Component {
     this._ratingButtons = this._element.querySelectorAll(`.film-details__user-rating-input`);
     this._userRating = this._element.querySelector(`.film-details__user-rating`);
     this._flagsWrapper = this._element.querySelector(`.film-details__controls`);
-
+    this._btnUndo = this._element.querySelector(`.film-details__watched-reset`);
   }
 
   uncache() {
@@ -285,20 +316,25 @@ export default class CardFilmDetails extends Component {
     this._ratingButtons = null;
     this._userRating = null;
     this._flagsWrapper = null;
+    this._btnUndo = null;
   }
 
   bind() {
+    document.addEventListener(`keydown`, this._onCardDetailsKeyDown);
     this._ratingList.addEventListener(`change`, this._onRatingButtonClick);
     this._btnClose.addEventListener(`click`, this._onCloseButtonClick);
     this._inputComment.addEventListener(`keydown`, this._onCommentInputKeyDown);
     this._flagsWrapper.addEventListener(`change`, this._onFlagButtonClick);
+    this._btnUndo.addEventListener(`click`, this._onUndoButtonClick);
   }
 
   unbind() {
+    document.removeEventListener(`keydown`, this._onCardDetailsKeyDown);
     this._ratingList.removeEventListener(`change`, this._onRatingButtonClick);
     this._btnClose.removeEventListener(`click`, this._onCloseButtonClick);
     this._inputComment.removeEventListener(`keydown`, this._onCommentInputKeyDown);
     this._flagsWrapper.removeEventListener(`change`, this._onFlagButtonClick);
+    this._btnUndo.removeEventListener(`click`, this._onUndoButtonClick);
   }
 
   update(data) {
@@ -358,13 +394,13 @@ export default class CardFilmDetails extends Component {
   disabledRatingList() {
     this._ratingList.classList.remove(`shake`);
     this._ratingList.classList.remove(`film-details__user-rating-score--error`);
-    [...this._ratingButtons].forEach((it) => {
+    Array.from(this._ratingButtons).forEach((it) => {
       it.disabled = true;
     });
   }
 
   includedRatingList() {
-    [...this._ratingButtons].forEach((it) => {
+    Array.from(this._ratingButtons).forEach((it) => {
       it.disabled = false;
     });
   }
@@ -376,12 +412,6 @@ export default class CardFilmDetails extends Component {
   ratingSubmitError() {
     this._ratingList.classList.add(`shake`);
     this._ratingList.classList.add(`film-details__user-rating-score--error`);
-  }
-
-  _partialUpdate() {
-    const parentElement = this._element.parentNode;
-    const oldElement = this._element;
-    parentElement.replaceChild(this.render(), oldElement);
   }
 
   static createMapper(target) {

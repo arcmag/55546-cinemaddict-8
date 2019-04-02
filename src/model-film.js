@@ -36,7 +36,7 @@ export default class ModelFilm {
         'alternative_title': this.altTitle,
         'description': this.description,
         'director': this.director,
-        'genre': [...this.genre],
+        'genre': Array.from(this.genre),
         'poster': this.poster,
         'release': {
           'date': this.date,
@@ -45,7 +45,7 @@ export default class ModelFilm {
         'runtime': this.runtime,
         'title': this.title,
         'total_rating': this.totalRating,
-        'writers': [...this.writers]
+        'writers': Array.from(this.writers)
       },
       'user_details': {
         'already_watched': this.isWatched,
@@ -66,7 +66,7 @@ export default class ModelFilm {
         'alternative_title': data.altTitle,
         'description': data.description,
         'director': data.director,
-        'genre': [...data.genre],
+        'genre': Array.from(data.genre),
         'poster': data.poster,
         'release': {
           'date': data.date,
@@ -75,7 +75,7 @@ export default class ModelFilm {
         'runtime': data.runtime,
         'title': data.title,
         'total_rating': data.totalRating,
-        'writers': [...data.writers]
+        'writers': Array.from(data.writers)
       },
       'user_details': {
         'already_watched': data.isWatched,

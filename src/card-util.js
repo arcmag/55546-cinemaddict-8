@@ -1,11 +1,13 @@
 import {
-  getRandomAutorName,
-  getRandomDescription
-} from './data-card';
-import {updateFilters} from './filter-util';
+  searchString,
+  updateFilters,
+  FilterTitle,
+  countVisibleFilms,
+  visibleButtonShowMore
+} from './filter-util';
 import {createChart} from './chart-util';
 import CardFilm from './card-film';
-import CardFilmDetails from './film-details';
+import CardFilmDetails from './card-film-details';
 import ModelFilm from './model-film';
 import BackendAPI from './backend-api';
 import Store from './store';
@@ -14,10 +16,21 @@ import Provider from './provider';
 const HOUR_TIME = 60;
 const HIDDEN_CLASS = `visually-hidden`;
 
-const AUTHORIZATION_NUMBER = 735123312231215;
+const AUTHORIZATION_NUMBER = 735123312231218;
 const AUTHORIZATION = `Basic dXNlckBwYXNzd29yZAo=${AUTHORIZATION_NUMBER}`;
 const END_POINT = `https://es8-demo-srv.appspot.com/moowle`;
 const FILMS_STORE_KEY = `films-store-key`;
+
+const COMMENTS_AUTHOR_NAME = `user`;
+
+const LOAD_FILMS_MESSAGE_ERROR = `Something went wrong while loading movies. Check your
+  connection or try again later`;
+
+const ProfileRating = {
+  NOVICE: `novice`,
+  FAN: `fan`,
+  MOVIE_BUFF: `movie buff`
+};
 
 const api = new BackendAPI({endPoint: END_POINT, authorization: AUTHORIZATION});
 const store = new Store({key: FILMS_STORE_KEY, storage: localStorage});
@@ -29,7 +42,40 @@ const mostBlock = document.querySelector(`.films-list__container--commented`);
 
 const boardNoFilms = document.querySelector(`.board__no-films`);
 
+const footerStatistics = document.querySelector(`.footer__statistics`);
+const profileRatingElement = document.querySelector(`.profile__rating`);
+
 let cardFilms = [];
+
+let openedCardDetails = null;
+
+const updateProfileRating = () => {
+  const wathedFilmsCount = getWathedFilms().length;
+  let ratingString = ``;
+
+  if (wathedFilmsCount >= 1 && wathedFilmsCount <= 10) {
+    ratingString = ProfileRating.NOVICE;
+  } else if (wathedFilmsCount >= 11 && wathedFilmsCount <= 20) {
+    ratingString = ProfileRating.FAN;
+  } else if (wathedFilmsCount > 20) {
+    ratingString = ProfileRating.MOVIE_BUFF;
+  }
+
+  profileRatingElement.innerHTML = ratingString;
+};
+
+const openCardDetails = (cardDetails) => {
+  if (openedCardDetails === cardDetails) {
+    return;
+  }
+
+  if (openedCardDetails) {
+    openedCardDetails._onClose();
+  }
+
+  openedCardDetails = cardDetails;
+  document.body.appendChild(openedCardDetails.render());
+};
 
 const createGenresList = (films) => {
   const genres = new Set([]);
@@ -45,11 +91,11 @@ const createGenresList = (films) => {
 
 const createComment = (data) => {
   return {
-    author: getRandomAutorName(),
-    comment: getRandomDescription(),
+    isUser: true,
+    author: COMMENTS_AUTHOR_NAME,
     date: Date.now(),
-    emotion: data.commentEmoji,
-    ...data
+    comment: data.comment,
+    emotion: data.commentEmoji
   };
 };
 
@@ -63,7 +109,8 @@ const createCard = (data) => {
       isFavorite: card.isFavorite,
       isWatched: card.isWatched
     });
-    document.body.appendChild(cardDetails.render());
+
+    openCardDetails(cardDetails);
   };
 
   card.onFavoriteButtonClick = () => {
@@ -107,10 +154,32 @@ const createCard = (data) => {
         card.uncache();
         card._partialUpdate();
 
+        updateProfileRating();
         updateFilters();
       })
       .catch(() => {
         card.isWatched = !card.isWatched;
+      });
+  };
+
+  cardDetails.onDeleteLastComment = () => {
+    const otherComments = card.comments.filter((it) => !it.isUser);
+    const userComments = card.comments.filter((it) => it.isUser);
+
+    if (userComments.length === 0) {
+      return;
+    }
+
+    userComments.splice(userComments.length - 1, 1);
+
+    card.comments = otherComments.concat(userComments);
+    cardDetails.comments = card.comments;
+
+    provider.updateFilm({id: card.id, data: ModelFilm.staticToRAW(card)})
+      .then(() => {
+        cardDetails.commentUpdate();
+        renderCardsByCategory(cardFilms);
+        updateFilters();
       });
   };
 
@@ -173,6 +242,7 @@ const createCard = (data) => {
   cardDetails.onClose = () => {
     cardDetails.element.remove();
     cardDetails.unrender();
+    openedCardDetails = null;
 
     updateFilters();
   };
@@ -186,31 +256,50 @@ const renderCard = (container, card) => {
 
 const createCardList = (dataCardsList) => dataCardsList.map((it) => createCard(it));
 
-const renderCardList = (container, cardsList) => {
-  cardsList.forEach((it) => {
-    renderCard(container, it);
-  });
+const renderCardList = (container, cardsList, maxCountCard) => {
+  let len = maxCountCard || cardsList.length;
+
+  if (len > cardsList.length) {
+    len = cardsList.length;
+  }
+
+  for (let i = 0; i < len; i++) {
+    renderCard(container, cardsList[i]);
+  }
 };
 
 const getCardsByCategory = (cardsList, category) => {
   let cards = [];
 
   switch (category.toLowerCase()) {
-    case `all movies`:
+    case FilterTitle.ALL.toLowerCase():
       cards = cardsList;
       break;
-    case `watchlist`:
+    case FilterTitle.WATCHLIST.toLowerCase():
       cards = cardsList.filter((it) => it.isWatchlist);
       break;
-    case `history`:
+    case FilterTitle.HISTORY.toLowerCase():
       cards = cardsList.filter((it) => it.isWatched);
       break;
-    case `favorites`:
+    case FilterTitle.FAVORITES.toLowerCase():
       cards = cardsList.filter((it) => it.isFavorite);
       break;
   }
 
   return cards;
+};
+
+const setPersonalStatusTopCards = (cards, status) => {
+  cardFilms.forEach((it) => {
+    it.isTopRating = status;
+    it.isTopComments = status;
+  });
+};
+
+const setStatusVisibleCards = (cards, status) => {
+  cards.forEach((it) => {
+    it.isVisible = status;
+  });
 };
 
 const getWathedFilms = () => cardFilms.filter((it) => it.isWatched);
@@ -224,37 +313,64 @@ const getTotalDurationFilms = (films) => {
   };
 };
 
-const renderCardsByCategory = (films) => {
-  const topFilms = films.sort((prevFilm, nextFilm) => {
-    return nextFilm.totalRating - prevFilm.totalRating;
-  }).splice(0, 2);
+const getFilmsTopRatins = (films) => films
+  .slice()
+  .sort((prevFilm, nextFilm) =>
+    nextFilm.totalRating - prevFilm.totalRating
+  )
+  .splice(0, 2)
+  .map((it) => {
+    it.isTopRating = true;
+    return it;
+  });
 
-  const mostFilms = films.sort((prevFilm, nextFilm) => {
-    return nextFilm.comments.length - prevFilm.comments.length;
-  }).splice(0, 2);
+const getFilmsTopComments = (films) => films
+  .slice()
+  .sort((prevFilm, nextFilm) =>
+    nextFilm.comments.length - prevFilm.comments.length
+  )
+  .splice(0, 2)
+  .map((it) => {
+    it.isTopComments = true;
+    return it;
+  });
+
+const renderCardsByCategory = (films) => {
+  setPersonalStatusTopCards(films, false);
 
   topBlock.innerHTML = ``;
-  renderCardList(topBlock, topFilms);
+  const topRatingFilms = getFilmsTopRatins(cardFilms);
+  renderCardList(topBlock, topRatingFilms);
 
   mostBlock.innerHTML = ``;
-  renderCardList(mostBlock, mostFilms);
+  const topCommentsFilms = getFilmsTopComments(cardFilms);
+  renderCardList(mostBlock, topCommentsFilms);
 
   mainBlock.innerHTML = ``;
-  renderCardList(mainBlock, films);
-
-  films.push(...topFilms, ...mostFilms);
+  renderCardList(
+      mainBlock,
+      films.filter((it) =>
+        it.isVisible
+        && (!it.isTopRating && !it.isTopComments)
+        && it.title.toLowerCase().indexOf(searchString.toLowerCase()) !== -1
+      ),
+      countVisibleFilms
+  );
 };
 
 provider.getFilms()
   .then((films) => {
     boardNoFilms.classList.add(HIDDEN_CLASS);
     cardFilms = createCardList(films);
+    footerStatistics.innerHTML = cardFilms.length;
+    updateProfileRating();
     renderCardsByCategory(cardFilms);
     createChart();
     updateFilters();
+    visibleButtonShowMore();
   })
   .catch(() => {
-    boardNoFilms.innerHTML = `Something went wrong while loading movies. Check your connection or try again later`;
+    boardNoFilms.innerHTML = LOAD_FILMS_MESSAGE_ERROR;
   });
 
 window.addEventListener(`offline`, () => {
@@ -267,6 +383,8 @@ window.addEventListener(`online`, () => {
 });
 
 export {
+  setStatusVisibleCards,
+  renderCardsByCategory,
   createGenresList,
   getWathedFilms,
   cardFilms,

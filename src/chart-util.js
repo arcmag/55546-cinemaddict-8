@@ -1,7 +1,7 @@
 import Chart from 'chart.js';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 
-const BAR_HEIGHT = 50;
+const BAR_HEIGHT = 70;
 
 const statisticTextList = document.querySelector(`.statistic__text-list`);
 const statisticCtx = document.querySelector(`.statistic__chart`);
@@ -30,7 +30,7 @@ const updateDataStatistic = ({totalFilms, totalTime, topGenre}) => {
 };
 
 const getDataPriorityGenres = (films, genres) => {
-  const data = (genres ? [...genres] : []).reduce((obj, tag) => {
+  const data = (genres ? Array.from(genres) : []).reduce((obj, tag) => {
     obj[tag] = 0;
     return obj;
   }, {});
@@ -50,7 +50,7 @@ const chartUpdate = ({data, labels}) => {
   }
 
   if (labels) {
-    statisticChart.data.labels = [...labels];
+    statisticChart.data.labels = Array.from(labels);
     statisticCtx.height = BAR_HEIGHT * statisticChart.data.labels.length;
   }
 

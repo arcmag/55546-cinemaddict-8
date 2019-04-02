@@ -27,6 +27,10 @@ export default class CardFilm extends Component {
     this.isWatched = data.isWatched;
     this.isFavorite = data.isFavorite;
 
+    this.isVisible = true;
+    this.isTopRating = false;
+    this.isTopComments = false;
+
     this._onCommentsButtonClick = this._onCommentsButtonClick.bind(this);
     this._onFavoriteButtonClick = this._onFavoriteButtonClick.bind(this);
     this._onWatchlistButtonClick = this._onWatchlistButtonClick.bind(this);
@@ -95,14 +99,15 @@ export default class CardFilm extends Component {
   }).format(`HH:mm`)}
           </span>
           <span class="film-card__genre">
-            ${[...this.genre].map((it) => it).join(`, `)}
+            ${Array.from(this.genre).map((it) => it).join(`, `)}
           </span>
         </p>
         <img src="${this.poster}" alt="" class="film-card__poster">
-        <p class="film-card__description">${this.description}</p>
+        <p class="film-card__description">${this.description.length <= 140 ? this.description : this.description.substring(0, 140) + `...`}</p>
         <button class="film-card__comments">${this.comments.length} comments</button>
 
-        <form class="film-card__controls">
+
+        <form class="film-card__controls ${this.isTopRating || this.isTopComments ? `visually-hidden` : ``}">
           <button class="film-card__controls-item button film-card__controls-item--add-to-watchlist ${this.isWatchlist && `film-card__controls-item--active`}">WL</button>
           <button class="film-card__controls-item button film-card__controls-item--mark-as-watched ${this.isWatched && `film-card__controls-item--active`}">WTCHD</button>
           <button class="film-card__controls-item button film-card__controls-item--favorite ${this.isFavorite && `film-card__controls-item--active`}">FAV</button>

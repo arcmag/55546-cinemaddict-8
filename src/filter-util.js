@@ -1,8 +1,9 @@
 import Filter from './filter';
 import {chartUpdate, getDataPriorityGenres, updateDataStatistic} from './chart-util';
 import {
+  setStatusVisibleCards,
+  renderCardsByCategory,
   createGenresList,
-  renderCardList,
   getCardsByCategory,
   cardFilms,
   getWathedFilms,
@@ -19,16 +20,32 @@ const FilterTitle = {
 
 const HIDDEN_CLASS = `visually-hidden`;
 
+const BASE_VISIBLE_COUNT_FILMS = 5;
+const INC_COUNT_FILMS_STEEP = 5;
+
+let searchString = ``;
+
+let countVisibleFilms = BASE_VISIBLE_COUNT_FILMS;
+
 const filmsBlock = document.querySelector(`.films`);
 const statisticBlock = document.querySelector(`.statistic`);
 
 const filterContainer = document.querySelector(`.main-navigation`);
 const mainBlock = document.querySelector(`.films-list__container`);
 
+const btnShowMore = document.querySelector(`.films-list__show-more`);
+const searchField = document.querySelector(`.search__field`);
+
+const statisticTimeFilters = document.querySelector(`.statistic__filters`);
+
 const createFilter = (data) => {
   const filter = new Filter(data);
 
   filter.onFilter = () => {
+    searchString = ``;
+    searchField.value = ``;
+    countVisibleFilms = BASE_VISIBLE_COUNT_FILMS;
+
     statisticBlock.classList.add(HIDDEN_CLASS);
     filmsBlock.classList.add(HIDDEN_CLASS);
 
@@ -49,9 +66,16 @@ const createFilter = (data) => {
         labels: genres
       });
     } else {
+      const cardsByCategory = getCardsByCategory(cardFilms, filter._title);
+
       filmsBlock.classList.remove(HIDDEN_CLASS);
       mainBlock.innerHTML = ``;
-      renderCardList(mainBlock, getCardsByCategory(cardFilms, filter._title));
+
+      setStatusVisibleCards(cardFilms, false);
+      setStatusVisibleCards(cardsByCategory, true);
+
+      renderCardsByCategory(cardsByCategory);
+      visibleButtonShowMore();
     }
 
     filtersList.forEach((it) => {
@@ -78,6 +102,14 @@ const updateFilters = () => {
   });
 };
 
+const visibleButtonShowMore = () => {
+  if (cardFilms.filter((it) => it.isVisible).length <= countVisibleFilms) {
+    btnShowMore.classList.add(HIDDEN_CLASS);
+  } else {
+    btnShowMore.classList.remove(HIDDEN_CLASS);
+  }
+};
+
 const filtersDataList = [
   {title: FilterTitle.ALL, link: `#all`, isActive: true},
   {title: FilterTitle.WATCHLIST, link: `#watchlist`, count: 0},
@@ -90,4 +122,21 @@ const filtersList = createFiltersList(filtersDataList);
 filterContainer.innerHTML = ``;
 renderFilterList(filtersList);
 
-export {updateFilters};
+btnShowMore.addEventListener(`click`, () => {
+  if (cardFilms.filter((it) => it.isVisible).length >= countVisibleFilms) {
+    countVisibleFilms += INC_COUNT_FILMS_STEEP;
+    renderCardsByCategory(cardFilms);
+    visibleButtonShowMore();
+  }
+});
+
+searchField.addEventListener(`input`, (evt) => {
+  searchString = evt.currentTarget.value;
+  renderCardsByCategory(cardFilms);
+});
+
+statisticTimeFilters.addEventListener(`change`, (evt) => {
+  statisticTimeFilters.dataset.var = evt;
+});
+
+export {updateFilters, FilterTitle, countVisibleFilms, visibleButtonShowMore, searchString};
