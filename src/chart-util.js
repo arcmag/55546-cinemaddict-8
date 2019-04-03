@@ -1,14 +1,14 @@
 import Chart from 'chart.js';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 
-const BAR_HEIGHT = 70;
-
 const statisticTextList = document.querySelector(`.statistic__text-list`);
 const statisticCtx = document.querySelector(`.statistic__chart`);
 
 let statisticChart = null;
 
-const updateDataStatistic = ({totalFilms, totalTime, topGenre}) => {
+const HOUR_TIME = 60;
+
+const updateDataStatistic = ({totalFilms, time, topGenre}) => {
   statisticTextList.innerHTML = `
     <li class="statistic__text-item">
       <h4 class="statistic__item-title">You watched</h4>
@@ -19,8 +19,8 @@ const updateDataStatistic = ({totalFilms, totalTime, topGenre}) => {
     <li class="statistic__text-item">
       <h4 class="statistic__item-title">Total duration</h4>
       <p class="statistic__item-text">
-        ${totalTime.hours} <span class="statistic__item-description">h</span>
-        ${totalTime.minutes} <span class="statistic__item-description">m</span>
+        ${Math.floor(time / HOUR_TIME)} <span class="statistic__item-description">h</span>
+        ${time % 60} <span class="statistic__item-description">m</span>
       </p>
     </li>
     <li class="statistic__text-item">
@@ -51,7 +51,6 @@ const chartUpdate = ({data, labels}) => {
 
   if (labels) {
     statisticChart.data.labels = Array.from(labels);
-    statisticCtx.height = BAR_HEIGHT * statisticChart.data.labels.length;
   }
 
   statisticChart.update();

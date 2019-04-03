@@ -10,9 +10,9 @@ const Method = {
 const checkStatus = (response) => {
   if (response.status >= 200 && response.status < 300) {
     return response;
-  } else {
-    throw new Error(`${response.status}: ${response.statusText}`);
   }
+
+  throw new Error(`${response.status}: ${response.statusText}`);
 };
 
 const toJSON = (response) => {
@@ -57,16 +57,6 @@ export default class BackendAPI {
     return this._load({url: `movies/${id}`, method: Method.DELETE});
   }
 
-  _load({url, method = Method.GET, body = null, headers = new Headers()}) {
-    headers.append(`Authorization`, this._authorization);
-
-    return fetch(`${this._endPoint}/${url}`, {method, body, headers})
-      .then(checkStatus)
-      .catch((err) => {
-        throw err;
-      });
-  }
-
   syncFilms({films}) {
     return this._load({
       url: `movies/sync`,
@@ -75,5 +65,15 @@ export default class BackendAPI {
       headers: new Headers({'Content-Type': `application/json`})
     })
       .then(toJSON);
+  }
+
+  _load({url, method = Method.GET, body = null, headers = new Headers()}) {
+    headers.append(`Authorization`, this._authorization);
+
+    return fetch(`${this._endPoint}/${url}`, {method, body, headers})
+      .then(checkStatus)
+      .catch((err) => {
+        throw err;
+      });
   }
 }

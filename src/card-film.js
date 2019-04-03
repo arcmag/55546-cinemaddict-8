@@ -1,7 +1,7 @@
 import Component from './component';
 import moment from 'moment';
 
-const HOUR_TIME = 60;
+const MAX_LEN_STRING_DESCRIPTION = 140;
 
 export default class CardFilm extends Component {
   constructor(data) {
@@ -10,6 +10,7 @@ export default class CardFilm extends Component {
     this.comments = data.comments;
     this.actors = data.actors;
     this.personalRating = data.personalRating;
+    this.watchingDate = data.watchingDate;
     this.ageRating = data.ageRating;
     this.altTitle = data.altTitle;
     this.description = data.description;
@@ -53,6 +54,40 @@ export default class CardFilm extends Component {
     this._onClick = fn;
   }
 
+  get template() {
+    const runtime = moment.duration(this.runtime, `minutes`);
+
+    return `
+      <article class="film-card">
+        <h3 class="film-card__title">${this.title}</h3>
+        <p class="film-card__rating">${this.totalRating}</p>
+        <p class="film-card__info">
+          <span class="film-card__year">${moment(this.date).format(`YYYY`)}</span>
+          <span class="film-card__duration">
+  ${moment().set({
+    'hour': runtime.hours(),
+    'minute': runtime.minutes()
+  }).format(`HH:mm`)}
+          </span>
+          <span class="film-card__genre">
+            ${Array.from(this.genre).map((it) => it).join(`, `)}
+          </span>
+        </p>
+        <img src="${this.poster}" alt="" class="film-card__poster">
+        <p class="film-card__description">
+          ${this.description.length <= MAX_LEN_STRING_DESCRIPTION ? this.description : `${this.description.substring(0, MAX_LEN_STRING_DESCRIPTION)}...`}
+        </p>
+        <button class="film-card__comments">${this.comments.length} comments</button>
+
+        <form class="film-card__controls ${this.isTopRating || this.isTopComments ? `visually-hidden` : ``}">
+          <button class="film-card__controls-item button film-card__controls-item--add-to-watchlist ${this.isWatchlist && `film-card__controls-item--active`}">WL</button>
+          <button class="film-card__controls-item button film-card__controls-item--mark-as-watched ${this.isWatched && `film-card__controls-item--active`}">WTCHD</button>
+          <button class="film-card__controls-item button film-card__controls-item--favorite ${this.isFavorite && `film-card__controls-item--active`}">FAV</button>
+        </form>
+      </article>
+    `;
+  }
+
   _onFavoriteButtonClick(evt) {
     evt.preventDefault();
 
@@ -85,35 +120,10 @@ export default class CardFilm extends Component {
     }
   }
 
-  get template() {
-    return `
-      <article class="film-card">
-        <h3 class="film-card__title">${this.title}</h3>
-        <p class="film-card__rating">${this.totalRating}</p>
-        <p class="film-card__info">
-          <span class="film-card__year">${moment(this.date).format(`YYYY`)}</span>
-          <span class="film-card__duration">
-  ${moment().set({
-    'hour': parseInt(this.runtime / HOUR_TIME, 10),
-    'minute': this.runtime % HOUR_TIME,
-  }).format(`HH:mm`)}
-          </span>
-          <span class="film-card__genre">
-            ${Array.from(this.genre).map((it) => it).join(`, `)}
-          </span>
-        </p>
-        <img src="${this.poster}" alt="" class="film-card__poster">
-        <p class="film-card__description">${this.description.length <= 140 ? this.description : this.description.substring(0, 140) + `...`}</p>
-        <button class="film-card__comments">${this.comments.length} comments</button>
-
-
-        <form class="film-card__controls ${this.isTopRating || this.isTopComments ? `visually-hidden` : ``}">
-          <button class="film-card__controls-item button film-card__controls-item--add-to-watchlist ${this.isWatchlist && `film-card__controls-item--active`}">WL</button>
-          <button class="film-card__controls-item button film-card__controls-item--mark-as-watched ${this.isWatched && `film-card__controls-item--active`}">WTCHD</button>
-          <button class="film-card__controls-item button film-card__controls-item--favorite ${this.isFavorite && `film-card__controls-item--active`}">FAV</button>
-        </form>
-      </article>
-    `;
+  _partialUpdate() {
+    const parentElement = this._element.parentNode;
+    const oldElement = this._element;
+    parentElement.replaceChild(this.render(), oldElement);
   }
 
   cache() {
@@ -163,11 +173,5 @@ export default class CardFilm extends Component {
     if (data.score !== undefined) {
       this.personalRating = data.score;
     }
-  }
-
-  _partialUpdate() {
-    const parentElement = this._element.parentNode;
-    const oldElement = this._element;
-    parentElement.replaceChild(this.render(), oldElement);
   }
 }

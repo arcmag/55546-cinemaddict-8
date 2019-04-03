@@ -22,6 +22,7 @@ export default class CardFilmDetails extends Component {
     this.comments = data.comments;
     this.actors = data.actors;
     this.personalRating = data.personalRating;
+    this.watchingDate = data.watchingDate;
     this.ageRating = data.ageRating;
     this.altTitle = data.altTitle;
     this.description = data.description;
@@ -47,29 +48,6 @@ export default class CardFilmDetails extends Component {
     this._onUndoButtonClick = this._onUndoButtonClick.bind(this);
   }
 
-  _processForm(formData) {
-    const entry = {
-      isWatchlist: false,
-      isWatched: false,
-      isFavorite: false,
-      commentEmoji: ``,
-      comment: ``,
-      score: 0
-    };
-
-    const filmDetailsMapper = CardFilmDetails.createMapper(entry);
-
-    for (const pair of formData.entries()) {
-      const [property, value] = pair;
-
-      if (filmDetailsMapper[property]) {
-        filmDetailsMapper[property](value);
-      }
-    }
-
-    return entry;
-  }
-
   set onClose(fn) {
     this._onClose = fn;
   }
@@ -88,53 +66,6 @@ export default class CardFilmDetails extends Component {
 
   set onDeleteLastComment(fn) {
     this._onDeleteLastComment = fn;
-  }
-
-  _onUndoButtonClick() {
-    if (typeof this._onDeleteLastComment === `function`) {
-      this._onDeleteLastComment();
-    }
-  }
-
-  _onFlagButtonClick() {
-    const formData = new FormData(this._filmForm);
-    const newData = this._processForm(formData);
-
-    if (typeof this._onChangeFlag === `function`) {
-      this._onChangeFlag(newData);
-    }
-  }
-
-  _onRatingButtonClick() {
-    const formData = new FormData(this._filmForm);
-    const newData = this._processForm(formData);
-
-    if (typeof this._onAddRating === `function`) {
-      this._onAddRating(newData);
-    }
-  }
-
-  _onCloseButtonClick() {
-    if (typeof this._onClose === `function`) {
-      this._onClose();
-    }
-  }
-
-  _onCardDetailsKeyDown(evt) {
-    if (typeof this._onClose === `function` && evt.keyCode === KEY_CODE_ESC) {
-      this._onClose();
-    }
-  }
-
-  _onCommentInputKeyDown(evt) {
-    const formData = new FormData(this._filmForm);
-    const newData = this._processForm(formData);
-
-    if (typeof this._onAddComment === `function`) {
-      if ((evt.ctrlKey && evt.keyCode === KEY_CODE_ENTER) && !this._inputComment.disabled) {
-        this._onAddComment(newData);
-      }
-    }
   }
 
   get template() {
@@ -230,7 +161,7 @@ export default class CardFilmDetails extends Component {
         <p class="film-details__comment-text">${it.comment}</p>
         <p class="film-details__comment-info">
           <span class="film-details__comment-author">${it.author}</span>
-          <span class="film-details__comment-day">${moment(it.date).fromNow(true)}</span>
+          <span class="film-details__comment-day">${moment(it.date).fromNow(true)} ago</span>
         </p>
       </div>
     </li>`
@@ -283,9 +214,9 @@ export default class CardFilmDetails extends Component {
       type="radio"
       name="score"
       class="film-details__user-rating-input visually-hidden"
-      value="${++idx}"
-      id="rating-${idx}">
-    <label class="film-details__user-rating-label" for="rating-${idx}">${idx}</label>`
+      value="${idx + 1}"
+      id="rating-${idx + 1}">
+    <label class="film-details__user-rating-label" for="rating-${idx + 1}">${idx + 1}</label>`
   ).join(``)}
                 </div>
               </section>
@@ -293,6 +224,108 @@ export default class CardFilmDetails extends Component {
           </section>
         </form>
       </section>`;
+  }
+
+  commentUpdate() {
+    this._commentsList.innerHTML = this.comments.map((it) =>
+      `<li class="film-details__comment">
+        <span class="film-details__comment-emoji">${Emotion[it.emotion]}</span>
+        <div>
+          <p class="film-details__comment-text">${it.comment}</p>
+          <p class="film-details__comment-info">
+            <span class="film-details__comment-author">${it.author}</span>
+            <span class="film-details__comment-day">${moment(it.date).fromNow(true)}</span>
+          </p>
+        </div>
+      </li>`
+    ).join(``);
+  }
+
+  inputCommentClear() {
+    this._inputComment.value = ``;
+  }
+
+  disabledInputComment() {
+    this._inputComment.classList.remove(`shake`);
+    this._inputComment.disabled = true;
+  }
+
+  includedInputComment() {
+    this._inputComment.disabled = false;
+  }
+
+  commentSubmitError() {
+    this._inputComment.classList.add(`shake`);
+  }
+
+  disabledRatingList() {
+    this._ratingList.classList.remove(`shake`);
+    this._ratingList.classList.remove(`film-details__user-rating-score--error`);
+    Array.from(this._ratingButtons).forEach((it) => {
+      it.disabled = true;
+    });
+  }
+
+  includedRatingList() {
+    Array.from(this._ratingButtons).forEach((it) => {
+      it.disabled = false;
+    });
+  }
+
+  ratingUpdate() {
+    this._userRating.innerHTML = `Your rate ${this.personalRating}`;
+  }
+
+  ratingSubmitError() {
+    this._ratingList.classList.add(`shake`);
+    this._ratingList.classList.add(`film-details__user-rating-score--error`);
+  }
+
+  _onUndoButtonClick() {
+    if (typeof this._onDeleteLastComment === `function`) {
+      this._onDeleteLastComment();
+    }
+  }
+
+  _onFlagButtonClick() {
+    const formData = new FormData(this._filmForm);
+    const newData = CardFilmDetails._processForm(formData);
+
+    if (typeof this._onChangeFlag === `function`) {
+      this._onChangeFlag(newData);
+    }
+  }
+
+  _onRatingButtonClick() {
+    const formData = new FormData(this._filmForm);
+    const newData = CardFilmDetails._processForm(formData);
+
+    if (typeof this._onAddRating === `function`) {
+      this._onAddRating(newData);
+    }
+  }
+
+  _onCloseButtonClick() {
+    if (typeof this._onClose === `function`) {
+      this._onClose();
+    }
+  }
+
+  _onCardDetailsKeyDown(evt) {
+    if (typeof this._onClose === `function` && evt.keyCode === KEY_CODE_ESC) {
+      this._onClose();
+    }
+  }
+
+  _onCommentInputKeyDown(evt) {
+    const formData = new FormData(this._filmForm);
+    const newData = CardFilmDetails._processForm(formData);
+
+    if (typeof this._onAddComment === `function`) {
+      if ((evt.ctrlKey && evt.keyCode === KEY_CODE_ENTER) && !this._inputComment.disabled) {
+        this._onAddComment(newData);
+      }
+    }
   }
 
   cache() {
@@ -359,59 +392,27 @@ export default class CardFilmDetails extends Component {
     }
   }
 
-  commentUpdate() {
-    this._commentsList.innerHTML = this.comments.map((it) =>
-      `<li class="film-details__comment">
-        <span class="film-details__comment-emoji">😴</span>
-        <div>
-          <p class="film-details__comment-text">${it.comment}</p>
-          <p class="film-details__comment-info">
-            <span class="film-details__comment-author">${it.author}</span>
-            <span class="film-details__comment-day">${moment(it.date).fromNow(true)}</span>
-          </p>
-        </div>
-      </li>`
-    ).join(``);
-  }
+  static _processForm(formData) {
+    const entry = {
+      isWatchlist: false,
+      isWatched: false,
+      isFavorite: false,
+      commentEmoji: ``,
+      comment: ``,
+      score: 0
+    };
 
-  inputCommentClear() {
-    this._inputComment.value = ``;
-  }
+    const filmDetailsMapper = CardFilmDetails.createMapper(entry);
 
-  disabledInputComment() {
-    this._inputComment.classList.remove(`shake`);
-    this._inputComment.disabled = true;
-  }
+    for (const pair of formData.entries()) {
+      const [property, value] = pair;
 
-  includedInputComment() {
-    this._inputComment.disabled = false;
-  }
+      if (filmDetailsMapper[property]) {
+        filmDetailsMapper[property](value);
+      }
+    }
 
-  commentSubmitError() {
-    this._inputComment.classList.add(`shake`);
-  }
-
-  disabledRatingList() {
-    this._ratingList.classList.remove(`shake`);
-    this._ratingList.classList.remove(`film-details__user-rating-score--error`);
-    Array.from(this._ratingButtons).forEach((it) => {
-      it.disabled = true;
-    });
-  }
-
-  includedRatingList() {
-    Array.from(this._ratingButtons).forEach((it) => {
-      it.disabled = false;
-    });
-  }
-
-  ratingUpdate() {
-    this._userRating.innerHTML = `Your rate ` + this.personalRating;
-  }
-
-  ratingSubmitError() {
-    this._ratingList.classList.add(`shake`);
-    this._ratingList.classList.add(`film-details__user-rating-score--error`);
+    return entry;
   }
 
   static createMapper(target) {

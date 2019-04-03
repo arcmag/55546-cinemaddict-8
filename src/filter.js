@@ -20,14 +20,6 @@ export default class Filter extends Component {
     this._onFilter = fn;
   }
 
-  _onFilterClick(evt) {
-    evt.preventDefault();
-
-    if (typeof this._onFilter === `function`) {
-      this._onFilter();
-    }
-  }
-
   get template() {
     return `
       <a href="${this._link}"
@@ -36,6 +28,21 @@ export default class Filter extends Component {
             ${this._isStats && `main-navigation__item--additional`}">
         ${this._title} ${this._count >= 0 ? `<span class="main-navigation__item-count">${this._count}</span>` : ``}
       </a>`;
+  }
+
+  _onFilterClick(evt) {
+    evt.preventDefault();
+
+    if (typeof this._onFilter === `function`) {
+      this._onFilter();
+    }
+  }
+
+  _partialUpdate() {
+    const parentElement = this._element.parentNode;
+    const oldElement = this._element;
+    this.unrender();
+    parentElement.replaceChild(this.render(), oldElement);
   }
 
   bind() {
@@ -48,12 +55,5 @@ export default class Filter extends Component {
 
   update(count) {
     this._count = count;
-  }
-
-  _partialUpdate() {
-    const parentElement = this._element.parentNode;
-    const oldElement = this._element;
-    this.unrender();
-    parentElement.replaceChild(this.render(), oldElement);
   }
 }

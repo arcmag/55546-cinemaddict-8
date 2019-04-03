@@ -13,10 +13,9 @@ import BackendAPI from './backend-api';
 import Store from './store';
 import Provider from './provider';
 
-const HOUR_TIME = 60;
 const HIDDEN_CLASS = `visually-hidden`;
 
-const AUTHORIZATION_NUMBER = 735123312231218;
+const AUTHORIZATION_NUMBER = 7351233122318;
 const AUTHORIZATION = `Basic dXNlckBwYXNzd29yZAo=${AUTHORIZATION_NUMBER}`;
 const END_POINT = `https://es8-demo-srv.appspot.com/moowle`;
 const FILMS_STORE_KEY = `films-store-key`;
@@ -30,6 +29,11 @@ const ProfileRating = {
   NOVICE: `novice`,
   FAN: `fan`,
   MOVIE_BUFF: `movie buff`
+};
+
+const CountFilmRating = {
+  NOVICE: {min: 1, max: 10},
+  FAN: {min: 11, max: 20}
 };
 
 const api = new BackendAPI({endPoint: END_POINT, authorization: AUTHORIZATION});
@@ -49,15 +53,17 @@ let cardFilms = [];
 
 let openedCardDetails = null;
 
+const getCardFilms = () => cardFilms;
+
 const updateProfileRating = () => {
   const wathedFilmsCount = getWathedFilms().length;
   let ratingString = ``;
 
-  if (wathedFilmsCount >= 1 && wathedFilmsCount <= 10) {
+  if (wathedFilmsCount >= CountFilmRating.NOVICE.min && wathedFilmsCount <= CountFilmRating.NOVICE.max) {
     ratingString = ProfileRating.NOVICE;
-  } else if (wathedFilmsCount >= 11 && wathedFilmsCount <= 20) {
+  } else if (wathedFilmsCount >= CountFilmRating.FAN.min && wathedFilmsCount <= CountFilmRating.FAN.max) {
     ratingString = ProfileRating.FAN;
-  } else if (wathedFilmsCount > 20) {
+  } else if (wathedFilmsCount > CountFilmRating.FAN.max) {
     ratingString = ProfileRating.MOVIE_BUFF;
   }
 
@@ -263,26 +269,27 @@ const renderCardList = (container, cardsList, maxCountCard) => {
     len = cardsList.length;
   }
 
-  for (let i = 0; i < len; i++) {
-    renderCard(container, cardsList[i]);
-  }
+  cardsList.slice(0, len).forEach((it) => {
+    renderCard(container, it);
+  });
 };
 
 const getCardsByCategory = (cardsList, category) => {
   let cards = [];
+
 
   switch (category.toLowerCase()) {
     case FilterTitle.ALL.toLowerCase():
       cards = cardsList;
       break;
     case FilterTitle.WATCHLIST.toLowerCase():
-      cards = cardsList.filter((it) => it.isWatchlist);
+      cards = cardsList.filter((it) => it.isWatchlist && (!it.isTopRating && !it.isTopComments));
       break;
     case FilterTitle.HISTORY.toLowerCase():
-      cards = cardsList.filter((it) => it.isWatched);
+      cards = cardsList.filter((it) => it.isWatched && (!it.isTopRating && !it.isTopComments));
       break;
     case FilterTitle.FAVORITES.toLowerCase():
-      cards = cardsList.filter((it) => it.isFavorite);
+      cards = cardsList.filter((it) => it.isFavorite && (!it.isTopRating && !it.isTopComments));
       break;
   }
 
@@ -302,16 +309,9 @@ const setStatusVisibleCards = (cards, status) => {
   });
 };
 
-const getWathedFilms = () => cardFilms.filter((it) => it.isWatched);
+const getWathedFilms = () => cardFilms.filter((it) => it.isWatched && (!it.isTopRating && !it.isTopComments));
 
-const getTotalDurationFilms = (films) => {
-  const totalMinutes = films.reduce((total, film) => total + film.runtime, 0);
-
-  return {
-    hours: parseInt(totalMinutes / HOUR_TIME, 10),
-    minutes: totalMinutes % HOUR_TIME
-  };
-};
+const getTotalDurationFilms = (films) => films.reduce((total, film) => total + film.runtime, 0);
 
 const getFilmsTopRatins = (films) => films
   .slice()
@@ -363,6 +363,7 @@ provider.getFilms()
     boardNoFilms.classList.add(HIDDEN_CLASS);
     cardFilms = createCardList(films);
     footerStatistics.innerHTML = cardFilms.length;
+
     updateProfileRating();
     renderCardsByCategory(cardFilms);
     createChart();
@@ -383,15 +384,11 @@ window.addEventListener(`online`, () => {
 });
 
 export {
+  getCardFilms,
   setStatusVisibleCards,
   renderCardsByCategory,
   createGenresList,
   getWathedFilms,
-  cardFilms,
   getTotalDurationFilms,
-  createCard,
-  renderCard,
-  createCardList,
-  renderCardList,
   getCardsByCategory
 };

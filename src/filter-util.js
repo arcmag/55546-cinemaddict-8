@@ -5,10 +5,11 @@ import {
   renderCardsByCategory,
   createGenresList,
   getCardsByCategory,
-  cardFilms,
+  getCardFilms,
   getWathedFilms,
   getTotalDurationFilms
 } from './card-util';
+import moment from 'moment';
 
 const FilterTitle = {
   ALL: `All movies`,
@@ -37,11 +38,31 @@ const btnShowMore = document.querySelector(`.films-list__show-more`);
 const searchField = document.querySelector(`.search__field`);
 
 const statisticTimeFilters = document.querySelector(`.statistic__filters`);
+const statisticAllTimeFilter = statisticTimeFilters.querySelector(`#statistic-all-time`);
+
+const filterChartUpdate = (films) => {
+  const genres = createGenresList(films);
+  const topGenre = films.length === 0 ? `-` : Object.entries(getDataPriorityGenres(films, genres))
+    .sort((a, b) => b[1] - a[1])[0][0];
+
+  updateDataStatistic({
+    totalFilms: films.length,
+    time: getTotalDurationFilms(films),
+    topGenre
+  });
+
+  chartUpdate({
+    data: Object.values(getDataPriorityGenres(films, genres)),
+    labels: genres
+  });
+};
 
 const createFilter = (data) => {
   const filter = new Filter(data);
 
   filter.onFilter = () => {
+    const allFilms = getCardFilms();
+
     searchString = ``;
     searchField.value = ``;
     countVisibleFilms = BASE_VISIBLE_COUNT_FILMS;
@@ -51,27 +72,15 @@ const createFilter = (data) => {
 
     if (filter._title === FilterTitle.STATS) {
       statisticBlock.classList.remove(HIDDEN_CLASS);
-      const films = getWathedFilms();
-      const genres = createGenresList(films);
-
-      updateDataStatistic({
-        totalFilms: films.length,
-        totalTime: getTotalDurationFilms(films),
-        topGenre: Object.entries(getDataPriorityGenres(films, genres)).sort((a, b) =>
-          b[1] - a[1])[0][0]
-      });
-
-      chartUpdate({
-        data: Object.values(getDataPriorityGenres(films, genres)),
-        labels: genres
-      });
+      statisticAllTimeFilter.checked = true;
+      filterChartUpdate(getFilmsByTime());
     } else {
-      const cardsByCategory = getCardsByCategory(cardFilms, filter._title);
+      const cardsByCategory = getCardsByCategory(allFilms, filter._title);
 
       filmsBlock.classList.remove(HIDDEN_CLASS);
       mainBlock.innerHTML = ``;
 
-      setStatusVisibleCards(cardFilms, false);
+      setStatusVisibleCards(allFilms, false);
       setStatusVisibleCards(cardsByCategory, true);
 
       renderCardsByCategory(cardsByCategory);
@@ -96,14 +105,14 @@ const renderFilterList = (filterList) => filterList.forEach((it) => renderFilter
 const updateFilters = () => {
   filtersList.forEach((it) => {
     if (it._title !== FilterTitle.STATS && it._title !== FilterTitle.ALL) {
-      it.update(getCardsByCategory(cardFilms, it._title).length);
+      it.update(getCardsByCategory(getCardFilms(), it._title).length);
       it._partialUpdate();
     }
   });
 };
 
 const visibleButtonShowMore = () => {
-  if (cardFilms.filter((it) => it.isVisible).length <= countVisibleFilms) {
+  if (getCardFilms().filter((it) => it.isVisible).length <= countVisibleFilms) {
     btnShowMore.classList.add(HIDDEN_CLASS);
   } else {
     btnShowMore.classList.remove(HIDDEN_CLASS);
@@ -123,20 +132,77 @@ filterContainer.innerHTML = ``;
 renderFilterList(filtersList);
 
 btnShowMore.addEventListener(`click`, () => {
-  if (cardFilms.filter((it) => it.isVisible).length >= countVisibleFilms) {
+  const allFilms = getCardFilms();
+
+  if (allFilms.filter((it) => it.isVisible).length >= countVisibleFilms) {
     countVisibleFilms += INC_COUNT_FILMS_STEEP;
-    renderCardsByCategory(cardFilms);
+    renderCardsByCategory(allFilms);
     visibleButtonShowMore();
   }
 });
 
 searchField.addEventListener(`input`, (evt) => {
   searchString = evt.currentTarget.value;
-  renderCardsByCategory(cardFilms);
+  renderCardsByCategory(getCardFilms());
 });
+
+const FilterTime = {
+  TODAY: `today`,
+  WEEK: `week`,
+  MONTH: `month`,
+  YEAR: `year`
+};
+
+const PeriodDatetime = {
+  TODAY: {day: 0, month: 0},
+  WEEK: {day: 7, month: 0},
+  MONTH: {month: 0},
+  YEAR: {month: 12}
+};
+
+const getFilmsByTime = (datetime) => {
+  let films = getWathedFilms();
+  const now = Date.now();
+
+  switch (datetime) {
+    case FilterTime.TODAY:
+      films = films.filter((it) => {
+        const data = moment.duration(now - it.watchingDate)._data;
+        return data.days <= PeriodDatetime.TODAY.day && data.months <= PeriodDatetime.TODAY.month;
+      });
+      break;
+    case FilterTime.WEEK:
+      films = films.filter((it) => {
+        const data = moment.duration(now - it.watchingDate)._data;
+        return data.days < PeriodDatetime.WEEK.day && data.months <= PeriodDatetime.WEEK.month;
+      });
+      break;
+    case FilterTime.MONTH:
+      films = films.filter((it) => {
+        const data = moment.duration(now - it.watchingDate)._data;
+        return data.months <= PeriodDatetime.MONTH.month;
+      });
+      break;
+    case FilterTime.YEAR:
+      films = films.filter((it) => {
+        const data = moment.duration(now - it.watchingDate)._data;
+        return data.months < PeriodDatetime.YEAR.month;
+      });
+      break;
+  }
+
+  return films;
+};
+
 
 statisticTimeFilters.addEventListener(`change`, (evt) => {
-  statisticTimeFilters.dataset.var = evt;
+  filterChartUpdate(getFilmsByTime(evt.target.value));
 });
 
-export {updateFilters, FilterTitle, countVisibleFilms, visibleButtonShowMore, searchString};
+export {
+  updateFilters,
+  FilterTitle,
+  countVisibleFilms,
+  visibleButtonShowMore,
+  searchString
+};

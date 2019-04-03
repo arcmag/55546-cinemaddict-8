@@ -7,6 +7,7 @@ export default class ModelFilm {
     this.isFavorite = data.user_details.favorite;
     this.isWatchlist = data.user_details.watchlist;
     this.personalRating = data.user_details.personal_rating || 0;
+    this.watchingDate = data.user_details.watching_date || 0;
 
     this.actors = data.film_info.actors || [];
     this.ageRating = data.film_info.age_rating || 0;
@@ -51,7 +52,8 @@ export default class ModelFilm {
         'already_watched': this.isWatched,
         'favorite': this.isFavorite,
         'personal_rating': this.personalRating,
-        'watchlist': this.isWatchlist
+        'watchlist': this.isWatchlist,
+        'watching_date': this.watchingDate
       }
     };
   }
@@ -81,7 +83,8 @@ export default class ModelFilm {
         'already_watched': data.isWatched,
         'favorite': data.isFavorite,
         'personal_rating': data.personalRating,
-        'watchlist': data.isWatchlist
+        'watchlist': data.isWatchlist,
+        'watching_date': data.watchingDate
       }
     };
   }
