@@ -167,26 +167,26 @@ const getFilmsByTime = (datetime) => {
   switch (datetime) {
     case FilterTime.TODAY:
       films = films.filter((it) => {
-        const data = moment.duration(now - it.watchingDate)._data;
-        return data.days <= PeriodDatetime.TODAY.day && data.months <= PeriodDatetime.TODAY.month;
+        const data = moment.duration(now - it.watchingDate);
+        return data.days() <= PeriodDatetime.TODAY.day && data.months() <= PeriodDatetime.TODAY.month;
       });
       break;
     case FilterTime.WEEK:
       films = films.filter((it) => {
-        const data = moment.duration(now - it.watchingDate)._data;
-        return data.days < PeriodDatetime.WEEK.day && data.months <= PeriodDatetime.WEEK.month;
+        const data = moment.duration(now - it.watchingDate);
+        return data.days() < PeriodDatetime.WEEK.day && data.months() <= PeriodDatetime.WEEK.month;
       });
       break;
     case FilterTime.MONTH:
       films = films.filter((it) => {
-        const data = moment.duration(now - it.watchingDate)._data;
-        return data.months <= PeriodDatetime.MONTH.month;
+        const data = moment.duration(now - it.watchingDate);
+        return data.months() <= PeriodDatetime.MONTH.month;
       });
       break;
     case FilterTime.YEAR:
       films = films.filter((it) => {
-        const data = moment.duration(now - it.watchingDate)._data;
-        return data.months < PeriodDatetime.YEAR.month;
+        const data = moment.duration(now - it.watchingDate);
+        return data.months() < PeriodDatetime.YEAR.month;
       });
       break;
   }
